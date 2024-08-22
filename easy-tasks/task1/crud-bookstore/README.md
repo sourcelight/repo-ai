@@ -10,11 +10,19 @@
   - I had to add the @Data lombok annotation to the class Book in order to generate the getters and setters used in the BookService class
   - I had to add the methods like findByTitleContainingIgnoreCase in the BookRepository class, I've used copilot to generate the method signature and the implementation
   - I had to change the lombok version from 1.18.22 in the pom.xml file to 1.18.34 in order to make it compatible with the jdk 21 version
+  - I changed the pom configuration to use the jdk 21 version and set the JAVA_HOME environment variable to the jdk 21 path(used by maven) in order to run the application with the command: "mvn spring-boot:run"
+  - I had to change the application.properties file to use the jdk 21 version
+  - I had to add application-test.yml file to the resources folder to make the tests run adding also @Profile("test") to the test classes
+  - When I added the Hateos support, I had to review all tests
 
 
 - Which challenges did you face during completion of the task?
+  - The generated code is not immediately ready to run, I had to make some changes to make it work
+  - To create a ready to run project required some additional tuning like changing the sdk and the local maven configuration
+  - 
 
 
 - Which specific prompts you learned as a good practice to complete the task?
+  -It's a good idea to require to generate the tasks necessary to accomplish the project with the related prompts to make the task easier to complete 
 
 

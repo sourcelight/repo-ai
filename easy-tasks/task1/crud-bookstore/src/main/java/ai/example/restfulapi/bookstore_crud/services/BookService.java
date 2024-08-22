@@ -8,6 +8,7 @@ package ai.example.restfulapi.bookstore_crud.services;
 
 import ai.example.restfulapi.bookstore_crud.entities.Book;
 import ai.example.restfulapi.bookstore_crud.repositories.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,12 @@ public class BookService {
 
     // Retrieve a book by ID
     public Optional<Book> getBookById(Long id) {
-        return bookRepository.findById(id);
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            return optionalBook;
+        } else {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
     }
 
     // Retrieve all books
@@ -47,13 +53,18 @@ public class BookService {
             book.setQuantityAvailable(bookDetails.getQuantityAvailable());
             return bookRepository.save(book);
         } else {
-            throw new RuntimeException("Book not found with id " + id);
+            throw new EntityNotFoundException("Book not found with id " + id);
         }
     }
 
     // Delete a book
     public void deleteBook(Long id) {
-        bookRepository.deleteById(id);
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            bookRepository.delete(optionalBook.get());
+        } else {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
     }
 
     // Search books by title, author, or genre

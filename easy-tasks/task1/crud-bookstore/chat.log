@@ -672,3 +672,2187 @@ If any of the fields are missing or do not meet the validation constraints defin
 
 Ensure that your JSON input data adheres to the constraints defined in your `Book` class to avoid such errors. If you need further help with handling or customizing validation errors, feel free to ask!
 
+can you generate the postman collection to test the following controller?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.restfulapi.bookstore_crud.controller;
+
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+
+@RestController
+@RequestMapping("/api/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    // Create a new book
+    @PostMapping
+    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
+        Book createdBook = bookService.createBook(book);
+        return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
+    }
+
+    // Retrieve a book by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        return book.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Retrieve all books
+    @GetMapping
+    public ResponseEntity<List<Book>> getAllBooks() {
+        List<Book> books = bookService.getAllBooks();
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Update a book
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @Valid @RequestBody Book bookDetails) {
+        try {
+            Book updatedBook = bookService.updateBook(id, bookDetails);
+            return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Delete a book
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Search for books by title, author, or genre
+    @GetMapping("/search")
+    public ResponseEntity<List<Book>> searchBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String genre) {
+
+        List<Book> books = bookService.searchBooks(title, author, genre);
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+}
+
+"""
+
+Certainly! Below is a Postman Collection JSON that corresponds to the provided `BookController` endpoints. You can import this JSON collection into Postman to test your Spring Boot API endpoints.
+
+```json
+{
+  "info": {
+    "name": "Bookstore CRUD API",
+    "_postman_id": "d1e4a2a3-454d-41c2-98b1-75f9c2f55e17",
+    "description": "Postman Collection for testing Bookstore CRUD API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create a New Book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Spring Boot in Action\", \"author\": \"Craig Walls\", \"genre\": \"Technology\", \"price\": 39.99, \"quantityAvailable\": 10}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retrieve a Book by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retrieve All Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update a Book",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Spring Boot in Action (Updated)\", \"author\": \"Craig Walls\", \"genre\": \"Technology\", \"price\": 42.99, \"quantityAvailable\": 5}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete a Book",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {},
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/search?title=Spring",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "title",
+              "value": "Spring"
+            },
+            {
+              "key": "author",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "genre",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
+```
+
+### Steps to Import the Collection into Postman
+
+1. **Open Postman:** Launch the Postman application.
+2. **Import Collection:**
+   - Click on the `Import` button in the top-left corner.
+   - Select the `Raw text` tab.
+   - Copy and paste the JSON provided above.
+   - Click the `Continue` button.
+   - Click the `Import` button.
+
+### Collection Overview
+
+1. **Create a New Book:**
+   - **Method:** POST
+   - **URL:** `http://localhost:8080/api/books`
+   - **Body:**
+   ```json
+   {
+       "title": "Spring Boot in Action",
+       "author": "Craig Walls",
+       "genre": "Technology",
+       "price": 39.99,
+       "quantityAvailable": 10
+   }
+   ```
+
+2. **Retrieve a Book by ID:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to retrieve.
+
+3. **Retrieve All Books:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books`
+
+4. **Update a Book:**
+   - **Method:** PUT
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to update.
+   - **Body:**
+   ```json
+   {
+       "title": "Spring Boot in Action (Updated)",
+       "author": "Craig Walls",
+       "genre": "Technology",
+       "price": 42.99,
+       "quantityAvailable": 5
+   }
+   ```
+
+5. **Delete a Book:**
+   - **Method:** DELETE
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to delete.
+
+6. **Search Books:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books/search?title=Spring`
+   - Modify query parameters as needed to search by different fields.
+
+### Conclusion
+
+You can use this Postman collection to test all the CRUD operations and search functionality for your `BookController`. If you need further customization or help with something else, feel free to ask!
+
+Can you show an example of a global exception handler to handle errors across the API?
+
+Certainly! A global exception handler in a Spring Boot application can be created using the `@ControllerAdvice` and `@ExceptionHandler` annotations. This allows you to centralize exception handling and manage how exceptions are returned to the client.
+
+### Global Exception Handler
+
+Below is an example of a global exception handler that catches and handles various types of exceptions across your API.
+
+#### Exception Response Structure
+
+First, let's define a structure for the error response:
+
+```java
+public class ErrorResponse {
+    private int status;
+    private String message;
+    private long timeStamp;
+
+    public ErrorResponse() {}
+
+    public ErrorResponse(int status, String message, long timeStamp) {
+        this.status = status;
+        this.message = message;
+        this.timeStamp = timeStamp;
+    }
+
+    // Getters and Setters
+}
+```
+
+#### Global Exception Handler
+
+Now, create a `GlobalExceptionHandler` class with `@ControllerAdvice` to handle exceptions globally:
+
+```java
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.validation.FieldError;
+
+import java.util.HashMap;
+import java.util.Map;
+import javax.persistence.EntityNotFoundException;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Handle specific exceptions
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle general exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred. Please try again.",
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+### Explanation
+
+- **EntityNotFoundException Handling:** Provides a custom response when an entity is not found.
+- **MethodArgumentNotValidException Handling:** Provides a map of field errors and their corresponding messages when validation fails.
+- **Exception Handling:** Captures any unspecified or unexpected exceptions to return a generic error message.
+
+### Integration with CRUD Operations
+
+Make sure to throw `EntityNotFoundException` in your service layer when an entity is not found. For example, in your `BookService`:
+
+```java
+import javax.persistence.EntityNotFoundException;
+
+public Book updateBook(Long id, Book bookDetails) {
+    Optional<Book> optionalBook = bookRepository.findById(id);
+    if (optionalBook.isPresent()) {
+        Book book = optionalBook.get();
+        book.setTitle(bookDetails.getTitle());
+        book.setAuthor(bookDetails.getAuthor());
+        book.setGenre(bookDetails.getGenre());
+        book.setPrice(bookDetails.getPrice());
+        book.setQuantityAvailable(bookDetails.getQuantityAvailable());
+        return bookRepository.save(book);
+    } else {
+        throw new EntityNotFoundException("Book not found with id " + id);
+    }
+}
+```
+
+### Example Error Responses
+
+With the above setups, here are some typical error responses:
+
+1. **Entity Not Found (`EntityNotFoundException`):**
+   ```json
+   {
+       "status": 404,
+       "message": "Book not found with id 1",
+       "timeStamp": 1630972800000
+   }
+   ```
+
+2. **Validation Errors (`MethodArgumentNotValidException`):**
+   ```json
+   {
+       "title": "Title is mandatory",
+       "price": "Price must be positive"
+   }
+   ```
+
+3. **General Exception (`Exception`):**
+   ```json
+   {
+       "status": 500,
+       "message": "An unexpected error occurred. Please try again.",
+       "timeStamp": 1630972800000
+   }
+   ```
+
+By centralizing your exception handling using a global exception handler, you ensure a consistent error response structure and enhance the maintainability of your API. If you have further questions or need additional customization, feel free to ask!
+
+can you generate the postman collection to test the following controller?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.restfulapi.bookstore_crud.controller;
+
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+
+@RestController
+@RequestMapping("/api/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    // Create a new book
+    @PostMapping
+    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
+        Book createdBook = bookService.createBook(book);
+        return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
+    }
+
+    // Retrieve a book by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        return book.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Retrieve all books
+    @GetMapping
+    public ResponseEntity<List<Book>> getAllBooks() {
+        List<Book> books = bookService.getAllBooks();
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Update a book
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @Valid @RequestBody Book bookDetails) {
+        try {
+            Book updatedBook = bookService.updateBook(id, bookDetails);
+            return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Delete a book
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Search for books by title, author, or genre
+    @GetMapping("/search")
+    public ResponseEntity<List<Book>> searchBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String genre) {
+
+        List<Book> books = bookService.searchBooks(title, author, genre);
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+}
+
+"""
+Certainly! Below is a Postman Collection JSON that corresponds to the provided `BookController` endpoints. You can import this JSON collection into Postman to test your Spring Boot API endpoints.
+
+```json
+{
+  "info": {
+    "name": "Bookstore CRUD API",
+    "_postman_id": "d1e4a2a3-454d-41c2-98b1-75f9c2f55e17",
+    "description": "Postman Collection for testing Bookstore CRUD API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create a New Book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Spring Boot in Action\", \"author\": \"Craig Walls\", \"genre\": \"Technology\", \"price\": 39.99, \"quantityAvailable\": 10}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retrieve a Book by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retrieve All Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update a Book",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Spring Boot in Action (Updated)\", \"author\": \"Craig Walls\", \"genre\": \"Technology\", \"price\": 42.99, \"quantityAvailable\": 5}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete a Book",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {},
+        "url": {
+          "raw": "http://localhost:8080/api/books/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/books/search?title=Spring",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "books",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "title",
+              "value": "Spring"
+            },
+            {
+              "key": "author",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "genre",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
+```
+
+### Steps to Import the Collection into Postman
+
+1. **Open Postman:** Launch the Postman application.
+2. **Import Collection:**
+   - Click on the `Import` button in the top-left corner.
+   - Select the `Raw text` tab.
+   - Copy and paste the JSON provided above.
+   - Click the `Continue` button.
+   - Click the `Import` button.
+
+### Collection Overview
+
+1. **Create a New Book:**
+   - **Method:** POST
+   - **URL:** `http://localhost:8080/api/books`
+   - **Body:**
+   ```json
+   {
+       "title": "Spring Boot in Action",
+       "author": "Craig Walls",
+       "genre": "Technology",
+       "price": 39.99,
+       "quantityAvailable": 10
+   }
+   ```
+
+2. **Retrieve a Book by ID:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to retrieve.
+
+3. **Retrieve All Books:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books`
+
+4. **Update a Book:**
+   - **Method:** PUT
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to update.
+   - **Body:**
+   ```json
+   {
+       "title": "Spring Boot in Action (Updated)",
+       "author": "Craig Walls",
+       "genre": "Technology",
+       "price": 42.99,
+       "quantityAvailable": 5
+   }
+   ```
+
+5. **Delete a Book:**
+   - **Method:** DELETE
+   - **URL:** `http://localhost:8080/api/books/1`
+   - Replace `1` with the ID of the book you want to delete.
+
+6. **Search Books:**
+   - **Method:** GET
+   - **URL:** `http://localhost:8080/api/books/search?title=Spring`
+   - Modify query parameters as needed to search by different fields.
+
+### Conclusion
+
+You can use this Postman collection to test all the CRUD operations and search functionality for your `BookController`. If you need further customization or help with something else, feel free to ask!
+
+
+How do I write integration tests for the Book controller using Spring Boot and JUnit?
+
+Writing integration tests for the `BookController` in a Spring Boot application involves setting up a test environment, creating test cases, and verifying that the API endpoints work as expected. Integration tests typically involve starting the entire application context and interacting with the HTTP endpoints using tools like `MockMvc`.
+
+Here's how you can write integration tests for the `BookController` using Spring Boot and JUnit:
+
+### Dependencies
+
+Make sure you have the necessary dependencies in your `pom.xml` or `build.gradle`.
+
+#### Maven (`pom.xml`):
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+#### Gradle (`build.gradle`):
+
+```gradle
+testImplementation 'org.springframework.boot:spring-boot-starter-test'
+testImplementation 'com.h2database:h2'
+```
+
+### Setting Up the Test Class
+
+Create a test class for the `BookController`. Use the `@SpringBootTest` and `@AutoConfigureMockMvc` annotations to set up the test environment.
+
+#### `BookControllerIntegrationTest.java`:
+
+```java
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.repositories.BookRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+public class BookControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private Book book;
+
+    @BeforeEach
+    public void setup() {
+        bookRepository.deleteAll();
+        book = new Book();
+        book.setTitle("Spring Boot in Action");
+        book.setAuthor("Craig Walls");
+        book.setGenre("Technology");
+        book.setPrice(39.99);
+        book.setQuantityAvailable(10);
+        book = bookRepository.save(book);
+    }
+
+    @Test
+    public void testCreateBook() throws Exception {
+        Book newBook = new Book();
+        newBook.setTitle("Spring Microservices in Action");
+        newBook.setAuthor("John Carnell");
+        newBook.setGenre("Technology");
+        newBook.setPrice(45.00);
+        newBook.setQuantityAvailable(15);
+
+        mockMvc.perform(post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newBook)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title", is(newBook.getTitle())))
+                .andExpect(jsonPath("$.author", is(newBook.getAuthor())))
+                .andExpect(jsonPath("$.genre", is(newBook.getGenre())))
+                .andExpect(jsonPath("$.price", is(newBook.getPrice())))
+                .andExpect(jsonPath("$.quantityAvailable", is(newBook.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testGetBookById() throws Exception {
+        mockMvc.perform(get("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is(book.getTitle())))
+                .andExpect(jsonPath("$.author", is(book.getAuthor())))
+                .andExpect(jsonPath("$.genre", is(book.getGenre())))
+                .andExpect(jsonPath("$.price", is(book.getPrice())))
+                .andExpect(jsonPath("$.quantityAvailable", is(book.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testGetAllBooks() throws Exception {
+        mockMvc.perform(get("/api/books")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].title", is(book.getTitle())))
+                .andExpect(jsonPath("$[0].author", is(book.getAuthor())))
+                .andExpect(jsonPath("$[0].genre", is(book.getGenre())))
+                .andExpect(jsonPath("$[0].price", is(book.getPrice())))
+                .andExpect(jsonPath("$[0].quantityAvailable", is(book.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testUpdateBook() throws Exception {
+        book.setTitle("Updated Title");
+
+        mockMvc.perform(put("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is(book.getTitle())));
+    }
+
+    @Test
+    public void testDeleteBook() throws Exception {
+        mockMvc.perform(delete("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Book> bookOpt = bookRepository.findById(book.getId());
+        assert (bookOpt.isEmpty());
+    }
+
+    @Test
+    public void testSearchBooks() throws Exception {
+        mockMvc.perform(get("/api/books/search")
+                .param("title", "Spring")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].title", is(book.getTitle())))
+                .andExpect(jsonPath("$[0].author", is(book.getAuthor())))
+                .andExpect(jsonPath("$[0].genre", is(book.getGenre())))
+                .andExpect(jsonPath("$[0].price", is(book.getPrice())))
+                .andExpect(jsonPath("$[0].quantityAvailable", is(book.getQuantityAvailable())));
+    }
+}
+```
+
+### Explanation
+
+- **Annotations:**
+  - `@ExtendWith(SpringExtension.class)`: Integrates Spring TestContext Framework with JUnit 5.
+  - `@SpringBootTest`: Loads the full application context for integration testing.
+  - `@AutoConfigureMockMvc`: Auto-configures `MockMvc` instance for testing web layer.
+
+- **Dependencies:**
+  - **`MockMvc`**: Used to perform HTTP requests and assert responses.
+  - **`BookRepository`**: Used to set up data for testing.
+  - **`ObjectMapper`**: Used to serialize and deserialize objects.
+
+- **Test Methods:**
+  - **`testCreateBook`**: Tests the `POST /api/books` endpoint.
+  - **`testGetBookById`**: Tests the `GET /api/books/{id}` endpoint.
+  - **`testGetAllBooks`**: Tests the `GET /api/books` endpoint.
+  - **`testUpdateBook`**: Tests the `PUT /api/books/{id}` endpoint.
+  - **`testDeleteBook`**: Tests the `DELETE /api/books/{id}` endpoint.
+  - **`testSearchBooks`**: Tests the `GET /api/books/search` endpoint.
+
+### Running the Tests
+
+To run the tests, you can use your IDE's built-in test runner or use the following command from the terminal:
+
+```sh
+./mvnw test
+```
+
+or for Gradle:
+
+```sh
+./gradlew test
+```
+
+This setup ensures that you can test your `BookController` endpoints comprehensively, ensuring they behave as expected in an actual running environment. If you have further questions or need more help, feel free to ask!
+
+in the previous class test can you use mockito to replace the real instance of bookRepository ?
+
+Certainly! You can use Mockito to mock the `BookRepository` instance rather than relying on a real instance. This allows you to isolate your `BookController` integration tests and focus only on the controller logic.
+
+Here's how you can modify the previous class test to use Mockito:
+
+### Updated Test Class with Mockito
+
+#### Add Dependencies
+First, ensure you have the necessary dependencies in your `pom.xml` or `build.gradle`.
+
+##### Maven (`pom.xml`):
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+    <exclusions>
+        <exclusion>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <version>3.11.2</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-junit-jupiter</artifactId>
+    <version>3.11.2</version>
+    <scope>test</scope>
+</dependency>
+```
+
+##### Gradle (`build.gradle`):
+
+```gradle
+testImplementation 'org.springframework.boot:spring-boot-starter-test' {
+    exclude group: 'org.mockito', module: 'mockito-core'
+}
+testImplementation 'org.mockito:mockito-core:3.11.2'
+testImplementation 'org.mockito:mockito-junit-jupiter:3.11.2'
+```
+
+### Test Class with Mockito
+
+Now, modify the test class to use a mocked `BookRepository`.
+
+#### `BookControllerIntegrationTest.java`:
+
+```java
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+public class BookControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private BookRepository bookRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @InjectMocks
+    private BookService bookService;
+
+    private Book book;
+
+    @BeforeEach
+    public void setup() {
+        book = new Book();
+        book.setTitle("Spring Boot in Action");
+        book.setAuthor("Craig Walls");
+        book.setGenre("Technology");
+        book.setPrice(39.99);
+        book.setQuantityAvailable(10);
+
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.of(book));
+        when(bookRepository.findAll()).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByTitleContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByAuthorContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByGenreContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
+    }
+
+    @Test
+    public void testCreateBook() throws Exception {
+        Book newBook = new Book();
+        newBook.setTitle("Spring Microservices in Action");
+        newBook.setAuthor("John Carnell");
+        newBook.setGenre("Technology");
+        newBook.setPrice(45.00);
+        newBook.setQuantityAvailable(15);
+
+        mockMvc.perform(post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newBook)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title", is(newBook.getTitle())))
+                .andExpect(jsonPath("$.author", is(newBook.getAuthor())))
+                .andExpect(jsonPath("$.genre", is(newBook.getGenre())))
+                .andExpect(jsonPath("$.price", is(newBook.getPrice())))
+                .andExpect(jsonPath("$.quantityAvailable", is(newBook.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testGetBookById() throws Exception {
+        mockMvc.perform(get("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is(book.getTitle())))
+                .andExpect(jsonPath("$.author", is(book.getAuthor())))
+                .andExpect(jsonPath("$.genre", is(book.getGenre())))
+                .andExpect(jsonPath("$.price", is(book.getPrice())))
+                .andExpect(jsonPath("$.quantityAvailable", is(book.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testGetAllBooks() throws Exception {
+        mockMvc.perform(get("/api/books")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].title", is(book.getTitle())))
+                .andExpect(jsonPath("$[0].author", is(book.getAuthor())))
+                .andExpect(jsonPath("$[0].genre", is(book.getGenre())))
+                .andExpect(jsonPath("$[0].price", is(book.getPrice())))
+                .andExpect(jsonPath("$[0].quantityAvailable", is(book.getQuantityAvailable())));
+    }
+
+    @Test
+    public void testUpdateBook() throws Exception {
+        book.setTitle("Updated Title");
+
+        mockMvc.perform(put("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is("Updated Title")));
+    }
+
+    @Test
+    public void testDeleteBook() throws Exception {
+        mockMvc.perform(delete("/api/books/{id}", book.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        verify(bookRepository, times(1)).deleteById(book.getId());
+    }
+
+    @Test
+    public void testSearchBooks() throws Exception {
+        mockMvc.perform(get("/api/books/search")
+                .param("title", "Spring")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].title", is(book.getTitle())))
+                .andExpect(jsonPath("$[0].author", is(book.getAuthor())))
+                .andExpect(jsonPath("$[0].genre", is(book.getGenre())))
+                .andExpect(jsonPath("$[0].price", is(book.getPrice())))
+                .andExpect(jsonPath("$[0].quantityAvailable", is(book.getQuantityAvailable())));
+    }
+}
+```
+
+### Explanation
+
+1. **Mockito Annotations**:
+    - `@MockBean` is used to create and inject a mock instance of `BookRepository`.
+    - `@InjectMocks` is used to inject the mocks into the `BookService` instance.
+
+2. **Setup Method**:
+    - The `setup` method initializes the `Book` object and defines the behavior of the mocked `BookRepository` using `when`...`thenReturn` syntax.
+
+3. **Test Cases**:
+    - The test cases remain the same but now rely on the mocked `BookRepository`.
+
+4. **Verify Method**:
+    - Used in the `testDeleteBook` method to verify that the `deleteById` method was called exactly once.
+
+### Advantages of Using Mockito:
+- **Isolation**: By mocking dependencies, you isolate the unit under test and make sure you only test the logic contained within it.
+- **Speed**: Using mocks can speed up tests because there is no need to interact with a real database.
+- **Flexibility**: You can precisely control the behavior of your mocks and simulate edge cases more easily.
+
+By using the `MockBean` annotation for your repository, you're able to focus the tests on the behavior of your `BookController`, ensuring it correctly handles the inputs and outputs for each endpoint. If you have further questions or need more customization, feel free to ask!
+
+How can I test the coverage ?
+
+To measure test coverage in a Spring Boot application, you can use a variety of tools. One of the most popular tools for Java applications is **JaCoCo (Java Code Coverage)**. JaCoCo integrates well with both Maven and Gradle build tools and provides detailed reports on code coverage, including metrics for lines, branches, and instructions covered by tests.
+
+### Using JaCoCo with Maven
+
+#### Step 1: Add JaCoCo Plugin to `pom.xml`
+
+Add the JaCoCo Maven plugin to your `pom.xml` under the `<build>` section.
+
+```xml
+<build>
+    <plugins>
+        <!-- Other plugins -->
+
+        <!-- JaCoCo Plugin -->
+        <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.7</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>report</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### Step 2: Run Tests and Generate Coverage Report
+
+Execute the following Maven command to run your tests and generate the coverage report:
+
+```sh
+./mvnw clean test
+```
+
+The JaCoCo coverage report will be generated in the `target/site/jacoco` directory. Open the `index.html` file in a web browser to view the detailed coverage report.
+
+### Using JaCoCo with Gradle
+
+#### Step 1: Apply JaCoCo Plugin
+
+Apply the JaCoCo plugin in your `build.gradle` file.
+
+```gradle
+plugins {
+    // Other plugins
+    id 'jacoco'
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+tasks.test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+}
+```
+
+#### Step 2: Run Tests and Generate Coverage Report
+
+Execute the following Gradle command to run your tests and generate the coverage report:
+
+```sh
+./gradlew clean test jacocoTestReport
+```
+
+The JaCoCo coverage report will be generated in the `build/jacocoHtml` directory. Open the `index.html` file in a web browser to view the detailed coverage report.
+
+### Viewing the Coverage Report
+
+The JaCoCo coverage report includes several useful metrics:
+
+- **Lines Covered**: How many lines of code are executed during tests.
+- **Branches Covered**: How many branches of conditional statements are executed.
+- **Instructions Covered**: The number of Java bytecode instructions executed.
+- **Methods and Classes Covered**: A high-level overview of methods and classes covered.
+
+### Example of Interpreting JaCoCo Report
+
+Here’s an example of what a JaCoCo report might look like:
+
+```
+Class: ai.example.restfulapi.bookstore_crud.controller.BookController
+
+    Method Coverage:
+        - createBook(): 100%
+        - getBookById(): 90%
+        - getAllBooks(): 100%
+        - etc...
+
+    Line Coverage:
+        - Lines covered: 85%
+        - Lines missed: 15%
+
+    Branch Coverage:
+        - Branches covered: 78%
+        - Branches missed: 22%
+
+Class: ai.example.restfulapi.bookstore_crud.services.BookService
+
+    Method Coverage:
+        - createBook(): 95%
+        - getBookById(): 80%
+        - etc...
+```
+
+### Improving Test Coverage
+
+If your coverage is not as high as you'd like, consider the following:
+
+1. **Write More Tests**: Add additional test cases to cover untested code paths.
+2. **Mock Dependencies**: Use mocks to isolate and test different code paths.
+3. **Edge Cases**: Ensure edge cases are tested to cover all branches of logic.
+
+### Integrating with CI/CD
+
+You can also integrate JaCoCo with CI/CD pipelines (such as Jenkins, GitLab CI, GitHub Actions) to automatically generate coverage reports and enforce coverage policies.
+
+#### Example with GitHub Actions
+
+Here’s a sample GitHub Actions workflow to generate JaCoCo reports:
+
+```yaml
+name: Java CI with Maven
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn clean verify
+
+    - name: Upload JaCoCo report
+      uses: actions/upload-artifact@v2
+      with:
+        name: jacoco-report
+        path: target/site/jacoco
+```
+
+By incorporating JaCoCo into your build process, you can keep track of your test coverage and continuously improve the quality of your codebase. If you have any further questions on how to configure or interpret coverage reports, feel free to ask!
+
+
+
+can you provide me with a test class of the following class?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.restfulapi.bookstore_crud.errorhandling;
+
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.validation.FieldError;
+
+import java.util.HashMap;
+import java.util.Map;
+
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Handle specific exceptions
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle general exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred. Please try again.",
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+"""
+
+can you provide me the test class for
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.restfulapi.bookstore_crud.services;
+
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.repositories.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class BookService {
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    // Create a new book
+    public Book createBook(Book book) {
+        return bookRepository.save(book);
+    }
+
+    // Retrieve a book by ID
+    public Optional<Book> getBookById(Long id) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            return optionalBook;
+        } else {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
+    }
+
+    // Retrieve all books
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+    // Update a book
+    public Book updateBook(Long id, Book bookDetails) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+            book.setTitle(bookDetails.getTitle());
+            book.setAuthor(bookDetails.getAuthor());
+            book.setGenre(bookDetails.getGenre());
+            book.setPrice(bookDetails.getPrice());
+            book.setQuantityAvailable(bookDetails.getQuantityAvailable());
+            return bookRepository.save(book);
+        } else {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
+    }
+
+    // Delete a book
+    public void deleteBook(Long id) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            bookRepository.delete(optionalBook.get());
+        } else {
+            throw new EntityNotFoundException("Book not found with id " + id);
+        }
+    }
+
+    // Search books by title, author, or genre
+    public List<Book> searchBooks(String title, String author, String genre) {
+        if (title != null && !title.isEmpty()) {
+            return bookRepository.findByTitleContainingIgnoreCase(title);
+        } else if (author != null && !author.isEmpty()) {
+            return bookRepository.findByAuthorContainingIgnoreCase(author);
+        } else if (genre != null && !genre.isEmpty()) {
+            return bookRepository.findByGenreContainingIgnoreCase(genre);
+        } else {
+            return bookRepository.findAll();
+        }
+    }
+}
+
+"""
+
+Certainly! To write unit tests for the `BookService` class, you can use Spring Boot's testing support along with JUnit and Mockito. The idea here is to mock the `BookRepository` and test the methods in `BookService` to ensure they behave as expected.
+
+Here's the test class for `BookService`:
+
+### Test Class for `BookService`
+
+```java
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.repositories.BookRepository;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class BookServiceTest {
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @InjectMocks
+    private BookService bookService;
+
+    private Book sampleBook;
+
+    @BeforeEach
+    public void setUp() {
+        sampleBook = new Book();
+        sampleBook.setTitle("Spring Boot in Action");
+        sampleBook.setAuthor("Craig Walls");
+        sampleBook.setGenre("Technology");
+        sampleBook.setPrice(39.99);
+        sampleBook.setQuantityAvailable(10);
+    }
+
+    @Test
+    public void testCreateBook() {
+        when(bookRepository.save(any(Book.class))).thenReturn(sampleBook);
+
+        Book createdBook = bookService.createBook(sampleBook);
+        assertNotNull(createdBook);
+        assertEquals("Spring Boot in Action", createdBook.getTitle());
+        verify(bookRepository, times(1)).save(any(Book.class));
+    }
+
+    @Test
+    public void testGetBookByIdFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.of(sampleBook));
+
+        Optional<Book> retrievedBook = bookService.getBookById(1L);
+        assertTrue(retrievedBook.isPresent());
+        assertEquals("Spring Boot in Action", retrievedBook.get().getTitle());
+        verify(bookRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    public void testGetBookByIdNotFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            bookService.getBookById(1L);
+        });
+
+        assertEquals("Book not found with id 1", exception.getMessage());
+        verify(bookRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    public void testGetAllBooks() {
+        when(bookRepository.findAll()).thenReturn(Arrays.asList(sampleBook));
+
+        List<Book> books = bookService.getAllBooks();
+        assertFalse(books.isEmpty());
+        assertEquals(1, books.size());
+        verify(bookRepository, times(1)).findAll();
+    }
+
+    @Test
+    public void testUpdateBookFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.of(sampleBook));
+        when(bookRepository.save(any(Book.class))).thenReturn(sampleBook);
+
+        Book updatedBookDetails = new Book();
+        updatedBookDetails.setTitle("Updated Title");
+        updatedBookDetails.setAuthor("Updated Author");
+        updatedBookDetails.setGenre("Updated Genre");
+        updatedBookDetails.setPrice(49.99);
+        updatedBookDetails.setQuantityAvailable(20);
+
+        Book updatedBook = bookService.updateBook(1L, updatedBookDetails);
+        assertNotNull(updatedBook);
+        assertEquals("Updated Title", updatedBook.getTitle());
+        assertEquals("Updated Author", updatedBook.getAuthor());
+        verify(bookRepository, times(1)).findById(anyLong());
+        verify(bookRepository, times(1)).save(any(Book.class));
+    }
+
+    @Test
+    public void testUpdateBookNotFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Book updatedBookDetails = new Book();
+        updatedBookDetails.setTitle("Updated Title");
+        updatedBookDetails.setAuthor("Updated Author");
+        updatedBookDetails.setGenre("Updated Genre");
+        updatedBookDetails.setPrice(49.99);
+        updatedBookDetails.setQuantityAvailable(20);
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            bookService.updateBook(1L, updatedBookDetails);
+        });
+
+        assertEquals("Book not found with id 1", exception.getMessage());
+        verify(bookRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    public void testDeleteBookFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.of(sampleBook));
+        doNothing().when(bookRepository).delete(any(Book.class));
+
+        bookService.deleteBook(1L);
+        verify(bookRepository, times(1)).findById(anyLong());
+        verify(bookRepository, times(1)).delete(any(Book.class));
+    }
+
+    @Test
+    public void testDeleteBookNotFound() {
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            bookService.deleteBook(1L);
+        });
+
+        assertEquals("Book not found with id 1", exception.getMessage());
+        verify(bookRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    public void testSearchBooksByTitle() {
+        when(bookRepository.findByTitleContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(sampleBook));
+
+        List<Book> books = bookService.searchBooks("Spring", null, null);
+        assertFalse(books.isEmpty());
+        assertEquals(1, books.size());
+        verify(bookRepository, times(1)).findByTitleContainingIgnoreCase(anyString());
+    }
+
+    @Test
+    public void testSearchBooksByAuthor() {
+        when(bookRepository.findByAuthorContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(sampleBook));
+
+        List<Book> books = bookService.searchBooks(null, "Craig", null);
+        assertFalse(books.isEmpty());
+        assertEquals(1, books.size());
+        verify(bookRepository, times(1)).findByAuthorContainingIgnoreCase(anyString());
+    }
+
+    @Test
+    public void testSearchBooksByGenre() {
+        when(bookRepository.findByGenreContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(sampleBook));
+
+        List<Book> books = bookService.searchBooks(null, null, "Technology");
+        assertFalse(books.isEmpty());
+        assertEquals(1, books.size());
+        verify(bookRepository, times(1)).findByGenreContainingIgnoreCase(anyString());
+    }
+}
+```
+
+### Explanation
+
+- **Annotations and Setup:**
+  - `@ExtendWith(MockitoExtension.class)`: Integrates Mockito with JUnit 5.
+  - `@Mock`: Annotates the mock `BookRepository`.
+  - `@InjectMocks`: Injects mocks into the `BookService` to be tested.
+  - **`@BeforeEach setUp method`**: Initializes the sample `Book` object and sets up common behavior for repository mocks.
+
+- **Test Methods:**
+  - **`testCreateBook`**: Tests the `createBook` method.
+  - **`testGetBookByIdFound`**: Tests the `getBookById` method for a found book.
+  - **`testGetBookByIdNotFound`**: Tests the `getBookById` method for a not-found book.
+  - **`testGetAllBooks`**: Tests the `getAllBooks` method.
+  - **`testUpdateBookFound`**: Tests the `updateBook` method for a found book.
+  - **`testUpdateBookNotFound`**: Tests the `updateBook` method for a not-found book.
+  - **`testDeleteBookFound`**: Tests the `deleteBook` method for a found book.
+  - **`testDeleteBookNotFound`**: Tests the `deleteBook` method for a not-found book.
+  - **`testSearchBooksByTitle`**: Tests the `searchBooks` method by title.
+  - **`testSearchBooksByAuthor`**: Tests the `searchBooks` method by author.
+  - **`testSearchBooksByGenre`**: Tests the `searchBooks` method by genre.
+
+### Running the Tests
+
+You can run these tests using your IDE's built-in test runner, or by using the following command from the terminal for Maven:
+
+```sh
+./mvnw test
+```
+
+or for Gradle:
+
+```sh
+./gradlew test
+```
+
+The above class tests all the main functionalities of the `BookService` class by mocking the `BookRepository` dependency using Mockito. This ensures that the service methods perform as expected without relying on an actual database. If you have further questions or need additional customization, feel free to ask!
+
+How can I add HATEOAS links to the responses of my Book API?
+
+Adding HATEOAS (Hypermedia as the Engine of Application State) to your Spring Boot REST API is a great way to enhance the interactions between clients and the server by providing navigable links within the resource representations.
+
+Spring HATEOAS provides a set of tools to make HATEOAS easier to implement in Spring applications. Below, I'll show you how to add HATEOAS links to the responses of your `BookController`.
+
+### Step 1: Add Dependency
+
+First, you need to add the Spring HATEOAS dependency to your project.
+
+#### Maven (`pom.xml`):
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-hateoas</artifactId>
+</dependency>
+```
+
+#### Gradle (`build.gradle`):
+
+```gradle
+implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+```
+
+### Step 2: Update the Book Entity
+
+You don’t need to do anything specific for the `Book` entity itself, but you'll be adding HATEOAS links to the `Book` resource representations.
+
+### Step 3: Create a Resource Assembler
+
+Create a `BookModelAssembler` class that converts a `Book` entity into a `BookModel` (which extends `RepresentationModel`).
+
+#### BookModelAssembler.java:
+
+```java
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.stereotype.Component;
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.controller.BookController;
+import org.springframework.hateoas.EntityModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+@Component
+public class BookModelAssembler extends RepresentationModelAssemblerSupport<Book, EntityModel<Book>> {
+
+    public BookModelAssembler() {
+        super(BookController.class, EntityModel.class);
+    }
+
+    @Override
+    public EntityModel<Book> toModel(Book book) {
+        return EntityModel.of(book,
+                linkTo(methodOn(BookController.class).getBookById(book.getId())).withSelfRel(),
+                linkTo(methodOn(BookController.class).getAllBooks()).withRel("books"));
+    }
+}
+```
+
+### Step 4: Update the Controller
+
+Update your `BookController` to use the `BookModelAssembler` to add HATEOAS links.
+
+#### BookController.java:
+
+```java
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+@RestController
+@RequestMapping("/api/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    @Autowired
+    private BookModelAssembler assembler;
+
+    // Create a new book
+    @PostMapping
+    public ResponseEntity<EntityModel<Book>> createBook(@Valid @RequestBody Book book) {
+        Book createdBook = bookService.createBook(book);
+        return new ResponseEntity<>(assembler.toModel(createdBook), HttpStatus.CREATED);
+    }
+
+    // Retrieve a book by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<EntityModel<Book>> getBookById(@PathVariable Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        return book.map(value -> new ResponseEntity<>(assembler.toModel(value), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Retrieve all books
+    @GetMapping
+    public ResponseEntity<CollectionModel<EntityModel<Book>>> getAllBooks() {
+        List<EntityModel<Book>> books = bookService.getAllBooks().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(CollectionModel.of(books, linkTo(methodOn(BookController.class).getAllBooks()).withSelfRel()), HttpStatus.OK);
+    }
+
+    // Update a book
+    @PutMapping("/{id}")
+    public ResponseEntity<EntityModel<Book>> updateBook(@PathVariable Long id, @Valid @RequestBody Book bookDetails) {
+        try {
+            Book updatedBook = bookService.updateBook(id, bookDetails);
+            return new ResponseEntity<>(assembler.toModel(updatedBook), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Delete a book
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Search for books by title, author, or genre
+    @GetMapping("/search")
+    public ResponseEntity<CollectionModel<EntityModel<Book>>> searchBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String genre) {
+
+        List<EntityModel<Book>> books = bookService.searchBooks(title, author, genre).stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(CollectionModel.of(books, linkTo(methodOn(BookController.class).searchBooks(title, author, genre)).withSelfRel()), HttpStatus.OK);
+    }
+}
+```
+
+### Explanation
+
+- **Dependencies:** The `spring-boot-starter-hateoas` dependency is added to the project.
+
+- **Resource Assembler:**
+  - **`BookModelAssembler`**: A component that converts a `Book` entity into an `EntityModel<Book>` and adds HATEOAS links.
+  - Links added include the self link and a link to the collection of books.
+
+- **Controller Updates:**
+  - **`createBook`**, **`getBookById`**, **`getAllBooks`**, and **`updateBook`** methods now use the `BookModelAssembler` to wrap the `Book` entities in `EntityModel` and `CollectionModel`.
+  - HATEOAS links are added to individual book responses and collections of books.
+
+### Example Responses
+
+#### Single Book Response
+
+```json
+{
+  "id": 1,
+  "title": "Spring Boot in Action",
+  "author": "Craig Walls",
+  "genre": "Technology",
+  "price": 39.99,
+  "quantityAvailable": 10,
+  "_links": {
+    "self": {
+      "href": "http://localhost:8080/api/books/1"
+    },
+    "books": {
+      "href": "http://localhost:8080/api/books"
+    }
+  }
+}
+```
+
+#### Collection Response
+
+```json
+{
+  "_embedded": {
+    "bookList": [
+      {
+        "id": 1,
+        "title": "Spring Boot in Action",
+        "author": "Craig Walls",
+        "genre": "Technology",
+        "price": 39.99,
+        "quantityAvailable": 10,
+        "_links": {
+          "self": {
+            "href": "http://localhost:8080/api/books/1"
+          },
+          "books": {
+            "href": "http://localhost:8080/api/books"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "self": {
+      "href": "http://localhost:8080/api/books"
+    }
+  }
+}
+```
+
+This setup ensures that your book responses are enriched with HATEOAS links, making it easier for clients to navigate through your API. If you have more questions or need further customization, feel free to ask!
+
+because of the previous constructor I get the following error during the compilation phase
+"""
+incompatible types: java.lang.Class<org.springframework.hateoas.EntityModel> cannot be converted to java.lang.Class<org.springframework.hateoas.EntityModel<ai.example.restfulapi.bookstore_crud.entities.Book>>
+"""
+
+how can I use @SpringBootTest and prevent loading db connections ?
+
+When using `@SpringBootTest` in a Spring Boot test, the entire application context is loaded, which can include creating database connections. If you want to prevent certain beans, such as DataSource or JPA entities, from being initialized during your test, you can do so by customizing the application context.
+
+There are several strategies you can employ to prevent loading database connections when running `@SpringBootTest`:
+
+1. **Exclude Auto-Configuration Classes:**
+2. **Use Custom `@TestConfiguration` Classes:**
+3. **Profile-Specific Configuration:**
+4. **Mock Beans:**
+
+### 1. Exclude Auto-Configuration Classes
+
+You can exclude specific auto-configuration classes that deal with database connections.
+
+#### Example:
+
+```java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
+public class YourApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(YourApplication.class, args);
+    }
+}
+```
+
+In your test class:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest(properties = { "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration" })
+class YourApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+}
+```
+
+### 2. Use Custom `@TestConfiguration` Classes
+
+Create a custom configuration for testing that overrides the default configuration, thus preventing the database connections from being initialized.
+
+#### Example:
+
+```java
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import javax.sql.DataSource;
+
+@TestConfiguration
+public class NoDbTestConfig {
+
+    @MockBean
+    private DataSource dataSource;
+}
+```
+
+In your test class:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+
+@SpringBootTest
+@ContextConfiguration(classes = { YourApplication.class, NoDbTestConfig.class })
+class YourApplicationTests {
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Test
+    void contextLoads() {
+    }
+}
+```
+
+### 3. Profile-Specific Configuration
+
+Use different profiles for your tests to disable database configuration.
+
+#### Example:
+
+In your `src/test/resources/application-test.properties`, disable the datasource:
+
+```properties
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+```
+
+In your test class:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class YourApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+}
+```
+
+### 4. Mock Beans
+
+Use `@MockBean` to replace the DataSource bean with a mock during tests.
+
+#### Example:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import javax.sql.DataSource;
+
+@SpringBootTest
+class YourApplicationTests {
+
+    @MockBean
+    private DataSource dataSource;
+
+    @Test
+    void contextLoads() {
+        // Test logic here
+    }
+}
+```
+
+### Summary
+
+By utilizing one of the strategies above, you can prevent loading database connections when running `@SpringBootTest`. The method you choose depends on your specific needs and project configuration:
+
+1. **Exclude Auto-Configuration Classes**: Best for preventing the auto-configuration of data sources and JPA.
+2. **Custom `@TestConfiguration` Classes**: Provides precise control over the beans and configuration used in tests.
+3. **Profile-Specific Configuration**: Useful for larger projects with distinct settings for different environments.
+4. **Mock Beans**: Quick and effective for replacing specific beans during tests.
+
+These approaches allow you to tailor your test environment to avoid unnecessary database connections, leading to faster and more isolated tests.
+
