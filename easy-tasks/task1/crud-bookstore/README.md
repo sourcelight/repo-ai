@@ -13,7 +13,8 @@
   - I changed the pom configuration to use the jdk 21 version and set the JAVA_HOME environment variable to the jdk 21 path(used by maven) in order to run the application with the command: "mvn spring-boot:run"
   - I had to change the application.properties file to use the jdk 21 version
   - I had to add application-test.yml file to the resources folder to make the tests run adding also @Profile("test") to the test classes
-  - When I added the Hateos support, I had to review all tests
+  - When I added the Hateos support, I had to review all tests(particular all the JsonPath expressions) to make them work again
+  - When I added the swagger support I ahd to address openapi to use springdoc-openapi-ui and find the correct artifcatId and version compatible with spring boot version 3.2.0
 
 
 - Which challenges did you face during completion of the task?

@@ -2856,3 +2856,223 @@ By utilizing one of the strategies above, you can prevent loading database conne
 
 These approaches allow you to tailor your test environment to avoid unnecessary database connections, leading to faster and more isolated tests.
 
+How do I set up Swagger to document my REST API in a Spring Boot application?
+
+Setting up Swagger to document your REST API in a Spring Boot application is straightforward, thanks to the Springfox library, which provides support for integrating Swagger into Spring Boot. Here’s a step-by-step guide to setting it up:
+
+### Step 1: Add Dependencies
+
+First, add the necessary dependencies for Springfox Swagger in your `pom.xml` (for Maven) or `build.gradle` (for Gradle).
+
+#### Maven (`pom.xml`):
+
+```xml
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-boot-starter</artifactId>
+    <version>3.0.0</version>
+</dependency>
+```
+
+#### Gradle (`build.gradle`):
+
+```gradle
+implementation 'io.springfox:springfox-boot-starter:3.0.0'
+```
+
+### Step 2: Annotate Your Spring Boot Application
+
+Annotate your main application class with `@EnableSwagger2` to enable Swagger support.
+
+#### Main Application Class:
+
+```java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@SpringBootApplication
+@EnableSwagger2
+public class BookstoreCrudApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(BookstoreCrudApplication.class, args);
+    }
+}
+```
+
+### Step 3: Create a Swagger Configuration Class
+
+Create a configuration class to customize the Swagger documentation, such as setting up the API information and scanning the controllers.
+
+#### SwaggerConfig.java:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("ai.example.restfulapi.bookstore_crud.controller"))
+                .paths(PathSelectors.any())
+                .build()
+                .apiInfo(apiInfo());
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("Bookstore CRUD API")
+                .description("API documentation for the Bookstore CRUD application")
+                .version("1.0.0")
+                .build();
+    }
+}
+```
+
+### Step 4: Access Swagger UI
+
+Once you have added the dependencies and configuration, you can start your Spring Boot application. Open a web browser and navigate to the following URL to access the Swagger UI:
+
+```
+http://localhost:8080/swagger-ui/
+```
+
+This will open the interactive Swagger UI where you can see and interact with your API endpoints.
+
+### Customizing and Annotations
+
+You can further customize your Swagger documentation using annotations in your controller and model classes.
+
+#### Example Controller with Swagger Annotations:
+
+```java
+import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.annotations.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+@RestController
+@RequestMapping("/api/books")
+@Api(tags = "Books", description = "CRUD operations for books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    @Autowired
+    private BookModelAssembler assembler;
+
+    @PostMapping
+    @ApiOperation(value = "Create a new book", response = Book.class)
+    public ResponseEntity<EntityModel<Book>> createBook(
+            @ApiParam(value = "Details of the book to be created", required = true) 
+            @Valid @RequestBody Book book) {
+        Book createdBook = bookService.createBook(book);
+        return new ResponseEntity<>(assembler.toModel(createdBook), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation(value = "Retrieve a book by ID", response = Book.class)
+    public ResponseEntity<EntityModel<Book>> getBookById(
+            @ApiParam(value = "ID of the book to retrieve", required = true) 
+            @PathVariable Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        return book.map(value -> new ResponseEntity<>(assembler.toModel(value), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping
+    @ApiOperation(value = "Retrieve all books", response = Book.class, responseContainer = "List")
+    public ResponseEntity<CollectionModel<EntityModel<Book>>> getAllBooks() {
+        List<EntityModel<Book>> books = bookService.getAllBooks().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(CollectionModel.of(books, linkTo(methodOn(BookController.class).getAllBooks()).withSelfRel()), HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    @ApiOperation(value = "Update a book by ID", response = Book.class)
+    public ResponseEntity<EntityModel<Book>> updateBook(
+            @ApiParam(value = "ID of the book to update", required = true) 
+            @PathVariable Long id,
+            @ApiParam(value = "Updated details of the book", required = true) 
+            @Valid @RequestBody Book bookDetails) {
+        try {
+            Book updatedBook = bookService.updateBook(id, bookDetails);
+            return new ResponseEntity<>(assembler.toModel(updatedBook), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiOperation(value = "Delete a book by ID")
+    public ResponseEntity<Void> deleteBook(
+            @ApiParam(value = "ID of the book to delete", required = true) 
+            @PathVariable Long id) {
+        bookService.deleteBook(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/search")
+    @ApiOperation(value = "Search books by title, author, or genre", response = Book.class, responseContainer = "List")
+    public ResponseEntity<CollectionModel<EntityModel<Book>>> searchBooks(
+            @ApiParam(value = "Title of the book(s) to search for") 
+            @RequestParam(required = false) String title,
+            @ApiParam(value = "Author of the book(s) to search for") 
+            @RequestParam(required = false) String author,
+            @ApiParam(value = "Genre of the book(s) to search for") 
+            @RequestParam(required = false) String genre) {
+
+        List<EntityModel<Book>> books = bookService.searchBooks(title, author, genre).stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(CollectionModel.of(books, linkTo(methodOn(BookController.class).searchBooks(title, author, genre)).withSelfRel()), HttpStatus.OK);
+    }
+}
+```
+
+### Explanation
+
+1. **Annotations**:
+    - `@Api`: Adds metadata about the controller class.
+    - `@ApiOperation`: Adds metadata about controller methods, like the purpose and response type.
+    - `@ApiParam`: Adds metadata about individual parameters.
+
+2. **Configuration**:
+    - The `SwaggerConfig` class configures the base package to scan for controllers and the general information about the API.
+
+3. **Swagger UI**:
+    - Access Swagger UI at `http://localhost:8080/swagger-ui/`.
+
+This setup should provide a comprehensive and interactive API documentation for your Spring Boot application using Swagger. If you encounter any issues or need further customization, feel free to ask!
+
+because of compatibility issues between springfox and the last spring boot versions,
+can you provide me the same solution and configurations using the dependnecy "springdoc-openapi" ?
+
+
+
