@@ -33,12 +33,15 @@ public class BookServiceTest {
 
     @BeforeEach
     public void setUp() {
-        sampleBook = new Book();
-        sampleBook.setTitle("Spring Boot in Action");
-        sampleBook.setAuthor("Craig Walls");
-        sampleBook.setGenre("Technology");
-        sampleBook.setPrice(39.99);
-        sampleBook.setQuantityAvailable(10);
+
+        sampleBook = Book.builder()
+                .id(1L)
+                .title("Spring Boot in Action")
+                .author("Craig Walls")
+                .genre("Technology")
+                .price(39.99)
+                .quantityAvailable(10)
+                .build();
     }
 
     @Test
@@ -88,12 +91,13 @@ public class BookServiceTest {
         when(bookRepository.findById(anyLong())).thenReturn(Optional.of(sampleBook));
         when(bookRepository.save(any(Book.class))).thenReturn(sampleBook);
 
-        Book updatedBookDetails = new Book();
-        updatedBookDetails.setTitle("Updated Title");
-        updatedBookDetails.setAuthor("Updated Author");
-        updatedBookDetails.setGenre("Updated Genre");
-        updatedBookDetails.setPrice(49.99);
-        updatedBookDetails.setQuantityAvailable(20);
+        Book updatedBookDetails = Book.builder()
+                .title("Updated Title")
+                .author("Updated Author")
+                .genre("Updated Genre")
+                .price(49.99)
+                .quantityAvailable(20)
+                .build();
 
         Book updatedBook = bookService.updateBook(1L, updatedBookDetails);
         assertNotNull(updatedBook);
@@ -106,13 +110,13 @@ public class BookServiceTest {
     @Test
     public void testUpdateBookNotFound() {
         when(bookRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        Book updatedBookDetails = new Book();
-        updatedBookDetails.setTitle("Updated Title");
-        updatedBookDetails.setAuthor("Updated Author");
-        updatedBookDetails.setGenre("Updated Genre");
-        updatedBookDetails.setPrice(49.99);
-        updatedBookDetails.setQuantityAvailable(20);
+        Book updatedBookDetails = Book.builder()
+                .title("Updated Title")
+                .author("Updated Author")
+                .genre("Updated Genre")
+                .price(49.99)
+                .quantityAvailable(20)
+                .build();
 
         Exception exception = assertThrows(EntityNotFoundException.class, () -> {
             bookService.updateBook(1L, updatedBookDetails);

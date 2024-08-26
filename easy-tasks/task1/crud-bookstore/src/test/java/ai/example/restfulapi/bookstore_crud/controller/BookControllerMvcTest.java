@@ -1,7 +1,14 @@
 package ai.example.restfulapi.bookstore_crud.controller;
 
+import ai.example.restfulapi.bookstore_crud.config.SecuredTest;
 import ai.example.restfulapi.bookstore_crud.entities.Book;
+import ai.example.restfulapi.bookstore_crud.entities.authentication.Role;
+import ai.example.restfulapi.bookstore_crud.hateos.BookModelAssembler;
 import ai.example.restfulapi.bookstore_crud.repositories.BookRepository;
+import ai.example.restfulapi.bookstore_crud.repositories.authentication.UserRepository;
+import ai.example.restfulapi.bookstore_crud.security.SecurityConfig;
+import ai.example.restfulapi.bookstore_crud.services.BookService;
+import ai.example.restfulapi.bookstore_crud.services.authentication.UserDetailsServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,14 +16,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import ai.example.restfulapi.bookstore_crud.entities.authentication.User;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
@@ -30,9 +45,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @project: repo-ai
  */
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest
+//@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+//In this way it doesn't load the whole context, but only the classes specified in the annotation
+//particualry doesn't load the new UserDetailsService class that would require the UserRepository
+@WebMvcTest(BookController.class)
+@ContextConfiguration(classes = { SecurityConfig.class, BookController.class, BookService.class,
+        BookModelAssembler.class, UserDetailsServiceImpl.class, UserRepository.class})
 public class BookControllerMvcTest {
 
     @Autowired
@@ -40,6 +60,12 @@ public class BookControllerMvcTest {
 
     @MockBean
     private BookRepository bookRepository;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -49,13 +75,22 @@ public class BookControllerMvcTest {
 
     @BeforeEach
     public void setup() {
-        book = new Book();
-        book.setId(1L);
-        book.setTitle("Spring Microservices in Action");
-        book.setAuthor("John Carnell");
-        book.setGenre("Technology");
-        book.setPrice(45);
-        book.setQuantityAvailable(15);
+
+        book = Book.builder()
+                .id(1L)
+                .title("Spring Microservices in Action")
+                .author("John Carnell")
+                .genre("Technology")
+                .price(45)
+                .quantityAvailable(15)
+                .build();
+
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.of(book));
+        when(bookRepository.findAll()).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByTitleContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByAuthorContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
+        when(bookRepository.findByGenreContainingIgnoreCase(anyString())).thenReturn(Arrays.asList(book));
 
         when(bookRepository.save(any(Book.class))).thenReturn(book);
         when(bookRepository.findById(anyLong())).thenReturn(Optional.of(book));
@@ -66,17 +101,31 @@ public class BookControllerMvcTest {
     }
 
     @Test
+    //When you use @WithMockUser, Spring Security will automatically create a mock user with the username you specify.
+    //end the UserDetailsService will load the user with the same username and it's deactivated
+    //@WithMockUser(username = "john_doe", roles = { "USER" })
     public void testCreateBook() throws Exception {
-        Book newBook = new Book();
-        newBook.setTitle("Spring Microservices in Action");
-        newBook.setAuthor("John Carnell");
-        newBook.setGenre("Technology");
-        newBook.setPrice(45.00);
-        newBook.setQuantityAvailable(15);
+
+        Book newBook = Book.builder()
+                .id(1L)
+                .title("Spring Microservices in Action")
+                .author("John Carnell")
+                .genre("Technology")
+                .price(45)
+                .quantityAvailable(15)
+                .build();
+        User user = new User("john_doe","john@example.com",passwordEncoder.encode("pwd"));
+        Role role = new Role("ROLE_USER");
+        Set set = Set.of(role);
+        user.setRoles(set);
+        when(userRepository.findByUsername(any())).thenReturn(user);
 
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newBook)))
+                        .content(objectMapper.writeValueAsString(newBook))
+                        //This is how you can authenticate the user and in this case the UserDetailsService is invoked  and will load the user with the same username
+                        .with(SecurityMockMvcRequestPostProcessors.httpBasic("john_doe", "pwd"))
+                )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title", is(newBook.getTitle())))
                 .andExpect(jsonPath("$.author", is(newBook.getAuthor())))
@@ -86,6 +135,7 @@ public class BookControllerMvcTest {
     }
 
     @Test
+    @SecuredTest
     public void testGetBookById() throws Exception {
         mockMvc.perform(get("/api/books/{id}", book.getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -98,6 +148,7 @@ public class BookControllerMvcTest {
     }
 
     @Test
+    @SecuredTest
     public void testGetAllBooks() throws Exception {
         mockMvc.perform(get("/api/books")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -110,7 +161,23 @@ public class BookControllerMvcTest {
                 .andExpect(jsonPath("$._embedded.bookList[0].quantityAvailable", is(book.getQuantityAvailable())));
     }
 
+
     @Test
+    public void testUserNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                //with the following annotation I force spring security to authenticate the user
+                //and this time the UserDetailsService will load the user that is null(UserRepository.findByUsername returns null)
+                //because is only mocked but not stubbed
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("john_doe", "pwd"))
+                )
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+
+
+    @Test
+    @SecuredTest
     public void testUpdateBook() throws Exception {
         book.setTitle("Updated Title");
 
@@ -122,6 +189,7 @@ public class BookControllerMvcTest {
     }
 
     @Test
+    @SecuredTest
     public void testDeleteBook() throws Exception {
         mockMvc.perform(delete("/api/books/{id}", book.getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -131,6 +199,7 @@ public class BookControllerMvcTest {
     }
 
     @Test
+    @SecuredTest
     public void testSearchBooks() throws Exception {
         mockMvc.perform(get("/api/books/search")
                         .param("title", "Spring")

@@ -2,6 +2,7 @@ package ai.example.restfulapi.bookstore_crud.controller;
 
 import ai.example.restfulapi.bookstore_crud.entities.Book;
 import ai.example.restfulapi.bookstore_crud.hateos.BookModelAssembler;
+import ai.example.restfulapi.bookstore_crud.repositories.authentication.UserRepository;
 import ai.example.restfulapi.bookstore_crud.services.BookService;
 import ai.example.restfulapi.bookstore_crud.utilities.HateoasUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +36,9 @@ import static org.mockito.Mockito.*;
 //I've used the application-test.yml file instead of the above annotation
 @ActiveProfiles("test")
 @SpringBootTest
+//In this way it doesn't load the whole context, but only the classes specified in the annotation
+//particualry doesn't load the new UserDetailsService class that would require the UserRepository
+@ContextConfiguration(classes = {BookController.class, BookModelAssembler.class})
 public class BookControllerTest {
 
 
@@ -50,13 +55,15 @@ public class BookControllerTest {
 
     @BeforeEach
     public void setup() {
-        book = new Book();
-        book.setId(1L);
-        book.setTitle("Spring Microservices in Action");
-        book.setAuthor("John Carnell");
-        book.setGenre("Technology");
-        book.setPrice(45);
-        book.setQuantityAvailable(15);
+
+        book = Book.builder()
+                .id(1L)
+                .title("Spring Microservices in Action")
+                .author("John Carnell")
+                .genre("Technology")
+                .price(45)
+                .quantityAvailable(15)
+                .build();
 
         //when(bookService.createBook(any(Book.class))).thenReturn(book);
         //when(assembler.toModel(any(Book.class))).thenReturn(EntityModel.of(book));
