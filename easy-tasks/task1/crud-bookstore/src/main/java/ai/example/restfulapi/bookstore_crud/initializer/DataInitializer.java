@@ -41,9 +41,11 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         Role roleUser = new Role("ROLE_USER");  // Using "ROLE_" prefix
         Role roleAdmin = new Role("ROLE_ADMIN"); // Using "ROLE_" prefix
+        Role roleAdminCreator = new Role("ROLE_ADMIN-CREATOR"); // Using "ROLE_" prefix
 
         roleRepository.save(roleUser);
         roleRepository.save(roleAdmin);
+        roleRepository.save(roleAdminCreator);
 
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(roleUser);
@@ -58,8 +60,14 @@ public class DataInitializer implements CommandLineRunner {
         User admin = new User("admin", "admin@example.com",passwordEncoder.encode("pwd"));
         admin.setRoles(adminRoles);
 
+        User adminCreator = new User("rick", "rick@example.com",passwordEncoder.encode("pwd"));
+        Set<Role> adminCreatorRoles = new HashSet<>();
+        adminCreatorRoles.add(roleAdminCreator);
+        adminCreator.setRoles(adminCreatorRoles);
+
         userRepository.save(user);
         userRepository.save(admin);
+        userRepository.save(adminCreator);
 
 
         bookRepository.save(Book.builder()

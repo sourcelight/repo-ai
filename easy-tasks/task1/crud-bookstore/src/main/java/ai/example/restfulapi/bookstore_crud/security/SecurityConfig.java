@@ -6,15 +6,11 @@
 
 package ai.example.restfulapi.bookstore_crud.security;
 
-import ai.example.restfulapi.bookstore_crud.services.authentication.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
 
@@ -34,6 +31,8 @@ public class SecurityConfig {
                                 //.requestMatchers("/api/books/**").authenticated() // Secure all book API endpoints
                                 .requestMatchers("/api/books/**").hasRole("USER") // Require USER role for API books endpoints
                                 .requestMatchers("/admin/**").hasRole("ADMIN") // Require ADMIN role for admin endpoints
+                                //.requestMatchers("/users/**"). hasRole("ADMIN_CREATOR") // Require ADMIN role for admin endpoints
+                                .requestMatchers("/users/del/*").access("hasRole('ADMIN-CREATOR') and @webSecurity.checkHttpMethodDelete(request)") // Require ADMIN role for admin endpoints
                                 .anyRequest().permitAll()
                 )
                 .httpBasic(withDefaults()) // Enable Basic Authentication
@@ -93,6 +92,7 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
-                .requestMatchers("/resources/**"); // Example of resources you might want to ignore
+                .requestMatchers("/resources/**") ;// Example of resources you might want to ignore
+                //.requestMatchers("/users/**"); // Example of resources you might want to ignore
     }
 }

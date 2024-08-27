@@ -6,6 +6,7 @@
 
 package ai.example.restfulapi.bookstore_crud.entities.authentication;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +26,7 @@ public class Role {
     @Column(nullable = false, unique = true)
     private String name;
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private Set<User> users = new HashSet<>();
 
     public Role() {
