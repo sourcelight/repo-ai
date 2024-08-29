@@ -447,3 +447,309 @@ This setup should provide you with the needed Thymeleaf templates for your produ
 
 the "ResourceNotFoundException" is not found ?
 
+can you provide me with a css style a bit more sophisticated ?
+
+Certainly! Below is a more sophisticated CSS style that includes responsive design, a better layout, a navigation bar, and some additional styling for buttons and forms. This should give your Thymeleaf pages a more professional look.
+
+### CSS File
+
+Place the CSS file in the `src/main/resources/static/css` directory.
+
+**File: `src/main/resources/static/css/style.css`**
+
+```css
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Navigation bar */
+.navbar {
+    background-color: #333;
+    color: white;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+.navbar a {
+    color: white;
+    padding: 14px 20px;
+    float: left;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+/* Button styles */
+button, .btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin: 5px 0;
+    display: inline-block;
+}
+
+button:hover, .btn:hover {
+    background-color: #0056b3;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-actions {
+    margin-top: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 0 10px;
+    }
+
+    .navbar a {
+        float: none;
+        display: block;
+        text-align: center;
+    }
+}
+```
+
+### Updated Thymeleaf Templates
+
+Update your Thymeleaf templates to include the CSS file and apply the styles. Add a navigation bar for better user experience.
+
+#### `inventory.html`
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Inventory</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="navbar">
+        <a th:href="@{/inventory}">Home</a>
+        <a th:href="@{/products/new}">Add New Product</a>
+    </div>
+    <div class="container">
+        <h1>Inventory</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product : ${products}">
+                    <td th:text="${product.name}">Name</td>
+                    <td th:text="${product.description}">Description</td>
+                    <td th:text="${product.price}">Price</td>
+                    <td th:text="${product.quantity}">Quantity</td>
+                    <td>
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="btn">View Details</a>
+                        <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+```
+
+#### `product-detail.html`
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Product Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="navbar">
+        <a th:href="@{/inventory}">Home</a>
+    </div>
+    <div class="container">
+        <h1>Product Details</h1>
+        <div class="form-group">
+            <label>Name:</label>
+            <span th:text="${product.name}">Name</span>
+        </div>
+        <div class="form-group">
+            <label>Description:</label>
+            <span th:text="${product.description}">Description</span>
+        </div>
+        <div class="form-group">
+            <label>Price:</label>
+            <span th:text="${product.price}">Price</span>
+        </div>
+        <div class="form-group">
+            <label>Quantity:</label>
+            <span th:text="${product.quantity}">Quantity</span>
+        </div>
+        <div class="form-actions">
+            <a th:href="@{/inventory}" class="btn">Back to Inventory</a>
+            <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn">Edit</a>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+#### `product-form.html`
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Product</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="navbar">
+        <a th:href="@{/inventory}">Home</a>
+    </div>
+    <div class="container">
+        <h1>Add New Product</h1>
+        <form th:action="@{/products}" th:object="${product}" method="post">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" th:field="*{name}" />
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" id="description" th:field="*{description}" />
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="number" id="price" th:field="*{price}" step="0.01" />
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" th:field="*{quantity}" />
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Save</button>
+                <a th:href="@{/inventory}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+#### `product-update.html`
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Update Product</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="navbar">
+        <a th:href="@{/inventory}">Home</a>
+    </div>
+    <div class="container">
+        <h1>Update Product</h1>
+        <form th:action="@{/products/update/{id}(id=${product.id})}" th:object="${product}" method="post">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" th:field="*{name}" />
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" id="description" th:field="*{description}" />
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="number" id="price" th:field="*{price}" step="0.01" />
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" th:field="*{quantity}" />
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Update</button>
+                <a th:href="@{/inventory}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+These changes enhance the look of your application by including a navigation bar, better styling for tables, forms, and buttons. The design is also responsive, making it look better on various screen sizes.
+

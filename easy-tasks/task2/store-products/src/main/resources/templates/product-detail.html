@@ -5,26 +5,31 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Product Details</h1>
-<div>
-    <label>Name:</label>
-    <span th:text="${product.name}">Name</span>
+<div class="navbar">
+    <a th:href="@{/products}">Home</a>
 </div>
-<div>
-    <label>Description:</label>
-    <span th:text="${product.description}">Description</span>
-</div>
-<div>
-    <label>Price:</label>
-    <span th:text="${product.price}">Price</span>
-</div>
-<div>
-    <label>Quantity:</label>
-    <span th:text="${product.quantity}">Quantity</span>
-</div>
-<div>
-    <a th:href="@{/inventory}">Back to Inventory</a> |
-    <a th:href="@{/products/edit/{id}(id=${product.id})}">Edit</a>
+<div class="container">
+    <h1>Product Details</h1>
+    <div class="form-group">
+        <label>Name:</label>
+        <span th:text="${product.name}">Name</span>
+    </div>
+    <div class="form-group">
+        <label>Description:</label>
+        <span th:text="${product.description}">Description</span>
+    </div>
+    <div class="form-group">
+        <label>Price:</label>
+        <span th:text="${product.price}">Price</span>
+    </div>
+    <div class="form-group">
+        <label>Quantity:</label>
+        <span th:text="${product.quantity}">Quantity</span>
+    </div>
+    <div class="form-actions">
+        <a th:href="@{/products}" class="btn">Back to Inventory</a>
+        <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn">Edit</a>
+    </div>
 </div>
 </body>
 </html>

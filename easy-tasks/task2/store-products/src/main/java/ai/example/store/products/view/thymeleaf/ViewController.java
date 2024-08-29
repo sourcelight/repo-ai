@@ -20,7 +20,7 @@ public class ViewController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping
+    @GetMapping(value = {"", "/"})
     public String listProducts(Model model) {
         model.addAttribute("products", productService.findAll());
         return "inventory";
@@ -59,6 +59,12 @@ public class ViewController {
             existingProduct.setQuantity(product.getQuantity());
             productService.save(existingProduct);
         });
+        return "redirect:/products";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteProduct(@PathVariable Long id) {
+        productService.deleteById(id);
         return "redirect:/products";
     }
 }

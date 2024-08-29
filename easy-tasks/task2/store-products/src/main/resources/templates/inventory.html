@@ -5,30 +5,41 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Inventory</h1>
-<a th:href="@{/products/new}">Add New Product</a>
-<table>
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Price</th>
-        <th>Quantity</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="product : ${products}">
-        <td th:text="${product.name}">Name</td>
-        <td th:text="${product.description}">Description</td>
-        <td th:text="${product.price}">Price</td>
-        <td th:text="${product.quantity}">Quantity</td>
-        <td>
-            <a th:href="@{/products/{id}(id=${product.id})}">View Details</a> |
-            <a th:href="@{/products/edit/{id}(id=${product.id})}">Edit</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div class="navbar">
+    <a th:href="@{/products}">Home</a>
+    <a th:href="@{/products/new}">Add New Product</a>
+</div>
+<div class="container">
+    <h1>Inventory</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.name}">Name</td>
+            <td th:text="${product.description}">Description</td>
+            <td th:text="${product.price}">Price</td>
+            <td th:text="${product.quantity}">Quantity</td>
+            <td>
+                <a th:href="@{/products/{id}(id=${product.id})}" class="btn">View Details</a>
+                <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn">Edit</a>
+
+                <!-- Delete button -->
+                <form th:action="@{/products/delete/{id}(id=${product.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>
