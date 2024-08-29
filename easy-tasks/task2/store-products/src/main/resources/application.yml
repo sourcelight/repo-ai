@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/inventory_db
+    username: userinventory
+    password: password123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    enable-spring-el-compiler: true
+    cache: false
+
+
+
+
+
+#used to see the parameters of the queries
+logging.level.org.hibernate:
+  orm.jdbc.bind: TRACE
+  type: TRACE
+  stat: TRACE
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+    swagger-ui:
+      enabled: true
+      path: /swagger-ui/index.html

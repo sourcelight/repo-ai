@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0  # You can specify your desired MySQL version here
+    container_name: mysql_db_store-products
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword  # Set your root password
+      MYSQL_DATABASE: mydatabase         # Default database to be created
+      MYSQL_USER: myuser                 # Non-root user to be created
+      MYSQL_PASSWORD: mypassword         # Password for the non-root user
+    ports:
+      - "3307:3306"  # Exposing MySQL port
+    volumes:
+      - my_mysql_data:/var/lib/mysql  # Use a named volume
+      ## the following line is commented out because it  created the following issue: "Cannot change permissions of the file 'ca.pem' (OS errno 1 - Operation not permitted)"
+      ##- ./mysql_data:/var/lib/mysql  # Persisting data in a relative path
+    networks:
+      - my_network
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-for-mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "8085:80"
+    depends_on:
+      - mysql
+    networks:
+      - my_network
+
+volumes:
+  my_mysql_data:  # Declare the named volume
+
+
+networks:
+  my_network:
+    driver: bridge
