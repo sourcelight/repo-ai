@@ -4,7 +4,7 @@
  */
 
 
-package ai.example.store.products.view.thymeleaf;
+package ai.example.store.products.controller;
 
 import ai.example.store.products.entities.Product;
 import ai.example.store.products.exceptions.ResourceNotFoundException;
@@ -25,6 +25,14 @@ public class ViewController {
         model.addAttribute("products", productService.findAll());
         return "inventory";
     }
+
+    /*@GetMapping("/{id}")
+    public String viewProduct(@PathVariable Long id, Model model) {
+        model.addAttribute("product", productService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"))
+        );
+        return "product-detail";
+    }*/
 
     @GetMapping("/{id}")
     public String viewProduct(@PathVariable Long id, Model model) {
