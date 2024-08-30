@@ -1,0 +1,260 @@
+Build a RESTful API for a simple social media application using Spring Boot, Hibernate, and PostgreSQL. The application should allow users to create and view posts, follow other users, and like posts. Each post should have a title, body, and author. Use Hibernate to persist the post and user data in the database.
+Please provide a set of technologies and frameworks required to develop such an application.
+Create a list of tasks with examples of prompts I can ask you for each task to get relevant examples.
+
+To build a RESTful API for a simple social media application using Spring Boot, Hibernate, and PostgreSQL, you will need the following technologies and frameworks:
+
+### Technologies and Frameworks Required:
+
+1. **Spring Boot** - For building the RESTful API.
+2. **Spring Data JPA (Hibernate)** - For ORM (Object-Relational Mapping) to interact with the PostgreSQL database.
+3. **PostgreSQL** - As the relational database to store user and post data.
+4. **Spring Security** - For user authentication and authorization (optional but recommended).
+5. **Thymeleaf or any other template engine** - If you decide to serve web pages, though RESTful API typically serves JSON data.
+6. **Maven or Gradle** - For project management and dependency management.
+7. **Lombok** - To reduce boilerplate code for common entity/model functionalities.
+8. **Swagger** - For API documentation and testing.
+9. **JUnit and Mockito** - For unit and integration testing.
+
+### List of Tasks and Example Prompts
+
+1. **Initializing the Spring Boot Project**
+
+   *Prompt*: "How do I initialize a new Spring Boot project using Spring Initializr?"
+
+2. **Setting Up PostgreSQL Configuration**
+
+   *Prompt*: "What are the essential configurations to connect my Spring Boot application to a PostgreSQL database?"
+
+3. **Creating Entities and Repositories**
+
+   *Prompt*: "Can you provide an example of how to create a User and Post entity with Hibernate annotations?"
+
+4. **Defining Relationships**
+
+   *Prompt*: "How do I define a one-to-many relationship between User and Post entities using Hibernate?"
+
+5. **Creating RESTful Controllers**
+
+   *Prompt*: "How do I create a RESTful controller for handling post creation and retrieval?"
+
+6. **Implementing Service Layer**
+
+   *Prompt*: "Could you show me an example of a service layer that handles the business logic for creating and liking posts?"
+
+7. **User Authentication and Authorization**
+
+   *Prompt*: "How do I set up user authentication and authorization using Spring Security?"
+
+8. **Handling Following Functionality**
+
+   *Prompt*: "How can I implement the functionality for users to follow other users?"
+
+9. **Implementing Likes Functionality**
+
+   *Prompt*: "How can I design and implement the functionality for users to like posts?"
+
+10. **Unit and Integration Testing**
+
+    *Prompt*: "What are some examples of unit and integration tests for the user and post functionalities?"
+
+11. **API Documentation with Swagger**
+
+    *Prompt*: "How do I integrate Swagger into my Spring Boot application for API documentation?"
+
+12. **Database Initialization and Seeding**
+
+    *Prompt*: "How do I set up initial data loading and database seeding in a Spring Boot application?"
+
+### For Each Task Prompts and Examples
+
+1. **Initializing the Spring Boot Project**
+   - *Prompt*: "How do I initialize a new Spring Boot project using Spring Initializr?"
+   - *Example Response*: Include dependencies like Spring Web, Spring Data JPA, Spring Security, PostgreSQL Driver, Swagger, and Lombok.
+
+2. **Setting Up PostgreSQL Configuration**
+   - *Prompt*: "What are the essential configurations to connect my Spring Boot application to a PostgreSQL database?"
+   - *Example Response*: Provide `application.properties` example with URL, username, password, and Hibernate dialect settings.
+
+3. **Creating Entities and Repositories**
+   - *Prompt*: "Can you provide an example of how to create a User and Post entity with Hibernate annotations?"
+   - *Example Response*: Show `User` and `Post` entity classes with fields annotated using Hibernate/JPA annotations.
+     ```java
+     @Entity
+     public class User {
+         @Id
+         @GeneratedValue(strategy = GenerationType.IDENTITY)
+         private Long id;
+         private String username;
+         private String password;
+         private String email;
+         // Getters and Setters
+     }
+
+     @Entity
+     public class Post {
+         @Id
+         @GeneratedValue(strategy = GenerationType.IDENTITY)
+         private Long id;
+         private String title;
+         private String body;
+
+         @ManyToOne
+         @JoinColumn(name = "user_id")
+         private User author;
+         // Getters and Setters
+     }
+     ```
+
+4. **Defining Relationships**
+   - *Prompt*: "How do I define a one-to-many relationship between User and Post entities using Hibernate?"
+   - *Example Response*: Show how to setup @OneToMany annotation in User, and @ManyToOne in Post.
+
+5. **Creating RESTful Controllers**
+   - *Prompt*: "How do I create a RESTful controller for handling post creation and retrieval?"
+   - *Example Response*: Provide a basic `PostController` class with endpoints for creating and retrieving posts.
+     ```java
+     @RestController
+     @RequestMapping("/api/posts")
+     public class PostController {
+         private final PostService postService;
+
+         @Autowired
+         public PostController(PostService postService) {
+             this.postService = postService;
+         }
+
+         @PostMapping
+         public ResponseEntity<Post> createPost(@RequestBody Post post) {
+             Post savedPost = postService.createPost(post);
+             return ResponseEntity.status(HttpStatus.CREATED).body(savedPost);
+         }
+
+         @GetMapping
+         public ResponseEntity<List<Post>> getAllPosts() {
+             List<Post> posts = postService.getAllPosts();
+             return ResponseEntity.ok(posts);
+         }
+     }
+     ```
+
+6. **Implementing Service Layer**
+   - *Prompt*: "Could you show me an example of a service layer that handles the business logic for creating and liking posts?"
+   - *Example Response*: Provide `PostService` interface and `PostServiceImpl` class with methods for creating posts and liking posts.
+
+7. **User Authentication and Authorization**
+   - *Prompt*: "How do I set up user authentication and authorization using Spring Security?"
+   - *Example Response*: Detail the steps to configure Spring Security with JWT or other authentication methods.
+
+8. **Handling Following Functionality**
+   - *Prompt*: "How can I implement the functionality for users to follow other users?"
+   - *Example Response*: Show how to set up a follow relationship with a join table and necessary endpoints.
+
+9. **Implementing Likes Functionality**
+   - *Prompt*: "How can I design and implement the functionality for users to like posts?"
+   - *Example Response*: Illustrate using a like entity, a service method to handle likes, and a controller endpoint for liking posts.
+
+10. **Unit and Integration Testing**
+    - *Prompt*: "What are some examples of unit and integration tests for the user and post functionalities?"
+    - *Example Response*: Provide JUnit and Mockito examples for testing UserService and PostService.
+
+11. **API Documentation with Swagger**
+    - *Prompt*: "How do I integrate Swagger into my Spring Boot application for API documentation?"
+    - *Example Response*: Show how to add Swagger dependencies and configure Swagger UI.
+
+12. **Database Initialization and Seeding**
+    - *Prompt*: "How do I set up initial data loading and database seeding in a Spring Boot application?"
+    - *Example Response*: Use `data.sql` for initial data or a service on application startup to seed data.
+
+Feel free to ask for detailed examples on any of the tasks, and I'll be happy to provide code snippets, configuration settings, or further explanations!
+
+when running tests I get the following error
+"""
+ drop table if exists user cascade " via JDBC [Syntax error in SQL statement "\000d\000a    drop table if exists [*]user cascade "; expected "identifier";]
+"""
+
+The issue you’re facing is due to the use of a reserved keyword, `user`, in your SQL statements. In PostgreSQL (and many other SQL databases), `user` is a reserved keyword.
+
+To fix this, you should escape the table name. In PostgreSQL, this can be done by enclosing the identifier in double quotes, like `"user"`. However, a more common practice is to avoid using reserved keywords as table names and use a more descriptive name, such as `app_user`.
+
+### Solution 1: Escaping Table Name
+
+Modify your entity class to use the escaped table name:
+
+```java
+@Entity
+@Table(name = "\"user\"")
+public class User {
+    // fields, getters, setters, etc.
+}
+```
+
+### Solution 2: Rename the Table
+
+A more robust solution is simply to give the table a different name that’s not a reserved keyword. This avoids the need for escaping throughout your codebase.
+
+```java
+@Entity
+@Table(name = "app_user")
+public class User {
+    // fields, getters, setters, etc.
+}
+```
+
+### Updating Repository interfaces
+
+If you’re using Spring Data JPA, ensure the repository interfaces still refer to the correct entity:
+
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+    // repository methods
+}
+```
+
+### Drop Table Script
+
+If you are dropping tables manually, make sure your drop table script also accounts for the proper naming:
+
+```sql
+DROP TABLE IF EXISTS "user" CASCADE;
+```
+
+### Updating Test Configurations
+
+Make sure your test configurations also use the correct table name, whether escaped or renamed:
+
+```properties
+# application-test.properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/yourdb
+spring.datasource.username=yourusername
+spring.datasource.password=yourpassword
+spring.jpa.hibernate.ddl-auto=create-drop
+```
+
+### Running Tests with Correct Schema
+
+Ensure your tests are running with the correct schema:
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class UserServiceTests {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    public void testCreateUser() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("testpass");
+        userRepository.save(user);
+
+        assertNotNull(userRepository.findByUsername("testuser"));
+    }
+}
+```
+
+By following these steps, you should be able to resolve the SQL syntax error related to the reserved keyword problem.
+
+
