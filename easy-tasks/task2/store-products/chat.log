@@ -753,3 +753,152 @@ Update your Thymeleaf templates to include the CSS file and apply the styles. Ad
 
 These changes enhance the look of your application by including a navigation bar, better styling for tables, forms, and buttons. The design is also responsive, making it look better on various screen sizes.
 
+Can you create a test class for the following class:
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.store.products.errorHandling;
+
+import ai.example.store.products.exceptions.ResourceNotFoundException;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ModelAndView handleResourceNotFoundException(ResourceNotFoundException ex, Model model) {
+        ModelAndView mav = new ModelAndView("error-404");
+        mav.addObject("message", ex.getMessage());
+        return mav;
+    }
+
+
+    @ExceptionHandler(Exception.class)
+    public ModelAndView globalExceptionHandler(Exception ex, Model model) {
+        ModelAndView mav = new ModelAndView("error-generic");
+        mav.addObject("message", ex.getMessage());
+        return mav;
+    }
+
+
+}
+"""
+
+Certainly! Below is a test class for the `GlobalExceptionHandler` class. This will use Spring's `MockMvc` to simulate HTTP requests and verify how exceptions are handled, including rendering the appropriate error views.
+
+### Dependencies
+
+Ensure you have the necessary dependencies in your `pom.xml` for testing:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-junit-jupiter</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+### Test Class
+
+Here's the test class for the `GlobalExceptionHandler`:
+
+**GlobalExceptionHandlerTest.java**
+
+```java
+package ai.example.store.products.errorHandling;
+
+import ai.example.store.products.exceptions.ResourceNotFoundException;
+import ai.example.store.products.controller.ViewController;
+import ai.example.store.products.entities.Product;
+import ai.example.store.products.service.ProductService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
+@WebMvcTest(ViewController.class)
+public class GlobalExceptionHandlerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private ProductService productService;
+
+    @BeforeEach
+    public void setup(WebApplicationContext wac) {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+
+    @Test
+    public void testHandleResourceNotFoundException() throws Exception {
+        when(productService.findById(anyLong())).thenThrow(new ResourceNotFoundException("Product not found"));
+
+        mockMvc.perform(get("/products/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error-404"))
+                .andExpect(model().attributeExists("message"))
+                .andExpect(model().attribute("message", "Product not found"));
+    }
+
+    @Test
+    public void testHandleGenericException() throws Exception {
+        when(productService.findById(anyLong())).thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(get("/products/1"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(view().name("error-generic"))
+                .andExpect(model().attributeExists("message"))
+                .andExpect(model().attribute("message", "Unexpected error"));
+    }
+}
+```
+
+### Explanation
+
+1. **Annotations and Setup**:
+   - `@ExtendWith(MockitoExtension.class)`: Enables the Mockito JUnit 5 extension to initialize mocks.
+   - `@WebMvcTest(ViewController.class)`: This annotation is used to configure Spring MVC tests with just one controller being tested.
+   - `@MockBean`: Creates a mock instance of `ProductService` and injects it into the `ViewController`.
+   - `@Autowired`: Injects the `MockMvc` instance for performing requests.
+   - `@BeforeEach`: Initializes the `MockMvc` instance, setting up the web application context.
+
+2. **Test Methods**:
+   - **testHandleResourceNotFoundException**: Mocks the service layer to throw a `ResourceNotFoundException` and verifies the controller returns the correct view and model attributes.
+   - **testHandleGenericException**: Mocks the service layer to throw a generic `RuntimeException` and verifies the controller returns the correct view and model attributes.
+
+These tests verify that the `GlobalExceptionHandler` correctly handles different exceptions and returns the appropriate views and model attributes for each case. The `MockMvc` setup ensures that the behavior is tested in a way that simulates real HTTP requests and responses.
+

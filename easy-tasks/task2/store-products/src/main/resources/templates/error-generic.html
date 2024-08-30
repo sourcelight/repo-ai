@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Page Not Found</title>
+    <title>Generic Error</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
-    <h1>404 - Page Not Found</h1>
-    <p th:text="${message}">The product you are looking for cannot be found.</p>
+    <h1>500 - Generic Error</h1>
+    <p th:text="${message}">General exception</p>
     <a href="/products">Back to products</a>
 </div>
 </body>

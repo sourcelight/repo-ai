@@ -5,6 +5,9 @@
 
 
 - Was the code ready to run after generation? What did you have to change to make it usable? 
+  - I had to modify the tests for the GlobaExceptionHandler class, because the generated code was not correct.The status was not "Not found" or "Internal server error"
+  
+    but in both cases 200 because the response was anyway set to return a page even if it was not found page or generic error page.
  
 
 - Which challenges did you face during completion of the task?
