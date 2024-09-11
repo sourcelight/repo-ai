@@ -6,6 +6,7 @@
 
 - Was the code ready to run after generation? What did you have to change to make it usable? 
   - When ai generated the entities, the table name "User" created issues using Postgres DB, I had to add quotes or change name's entity
+  - When I generated the postman collection, I had to modify the "pathVariables" removing the curly braces and adding the colon before the variable name
 
 - Which challenges did you face during completion of the task?
  

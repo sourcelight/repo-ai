@@ -257,4 +257,1304 @@ public class UserServiceTests {
 
 By following these steps, you should be able to resolve the SQL syntax error related to the reserved keyword problem.
 
+It seems that in the post model, it lacks the information about "likes", is it correct?
+
+You're correct; the earlier example did not include the "likes" functionality in the `Post` model. To implement a "likes" feature, you'll typically need an additional entity to represent the relationship between users and posts they have liked. This is often done using a join table in a many-to-many relationship.
+
+Here are the changes needed to add the "likes" functionality:
+
+1. **Create a `Like` Entity**: This entity will represent the "like" relationships.
+
+2. **Update `Post` and `User` Entities**: Link the new `Like` entity to both `Post` and `User` entities.
+
+3. **Creating Repositories**: Create repositories for managing `Like` entities.
+
+4. **Update Services and Controllers**: Add service methods and controller endpoints for liking and unliking posts.
+
+Let's break this down step-by-step.
+
+### 1. Create a `Like` Entity
+
+First, let's create the `Like` entity:
+
+```java
+import javax.persistence.*;
+
+@Entity
+public class Like {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
+    // Constructors, Getters, Setters
+}
+```
+
+### 2. Update `Post` and `User` Entities
+
+Next, update the `Post` and `User` entities to establish the relationship.
+
+#### Post Entity
+
+```java
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    private String body;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User author;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Like> likes = new HashSet<>();
+
+    // Constructors, Getters, Setters
+}
+```
+
+#### User Entity
+
+```java
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+
+    private String password;
+
+    private String email;
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Post> posts = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Like> likes = new HashSet<>();
+
+    // Constructors, Getters, Setters
+}
+```
+
+### 3. Creating Repositories
+
+Create a repository for managing `Like` entities:
+
+```java
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface LikeRepository extends JpaRepository<Like, Long> {
+    void deleteByUserAndPost(User user, Post post);
+    boolean existsByUserAndPost(User user, Post post);
+}
+```
+
+### 4. Update Services and Controllers
+
+Add service methods for liking and unliking posts.
+
+#### PostService
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+
+@Service
+public class PostServiceImpl implements PostService {
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Override
+    public Post createPost(Post post) {
+        return postRepository.save(post);
+    }
+
+    @Override
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
+    }
+
+    @Override
+    public void likePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            if (!likeRepository.existsByUserAndPost(user.get(), post.get())) {
+                Like like = new Like();
+                like.setUser(user.get());
+                like.setPost(post.get());
+                likeRepository.save(like);
+            }
+        }
+    }
+
+    @Override
+    public void unlikePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            likeRepository.deleteByUserAndPost(user.get(), post.get());
+        }
+    }
+}
+```
+
+#### PostController
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/posts")
+public class PostController {
+
+    @Autowired
+    private PostService postService;
+
+    @PostMapping
+    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        Post savedPost = postService.createPost(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedPost);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        List<Post> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.likePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{postId}/unlike")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.unlikePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
+```
+
+### SummaryCertainly! The `PostService` interface will define the methods required to manage posts and their related functionalities, such as creating posts, retrieving all posts, liking posts, and unliking posts. Here's a sample definition for the `PostService` interface:
+
+```java
+import java.util.List;
+
+public interface PostService {
+    
+    /**
+     * Creates a new post.
+     * 
+     * @param post The post to be created.
+     * @return The created post.
+     */
+    Post createPost(Post post);
+
+    /**
+     * Retrieves all the posts.
+     * 
+     * @return A list of all posts.
+     */
+    List<Post> getAllPosts();
+
+    /**
+     * Likes a post by a user.
+     * 
+     * @param postId The ID of the post to be liked.
+     * @param userId The ID of the user who likes the post.
+     */
+    void likePost(Long postId, Long userId);
+
+    /**
+     * Unlikes a post by a user.
+     * 
+     * @param postId The ID of the post to be unliked.
+     * @param userId The ID of the user who unlikes the post.
+     */
+    void unlikePost(Long postId, Long userId);
+}
+```
+
+### Explanation
+
+- `createPost(Post post)`: Method to create a new post.
+  - `post`: The post entity to be created.
+  - Returns the created post.
+
+- `getAllPosts()`: Method to retrieve all posts.
+  - Returns a list of all posts.
+
+- `likePost(Long postId, Long userId)`: Method to like a post.
+  - `postId`: The ID of the post to be liked.
+  - `userId`: The ID of the user who likes the post.
+
+- `unlikePost(Long postId, Long userId)`: Method to unlike a post.
+  - `postId`: The ID of the post to be unliked.
+  - `userId`: The ID of the user who unlikes the post.
+
+This interface provides a clear contract for the service implementation (`PostServiceImpl`), ensuring all necessary operations related to `Post` entities are supported. 
+
+### Full Implementation (`PostServiceImpl`)
+
+Here’s a quick recap of the `PostServiceImpl` from the previous interaction for completeness:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class PostServiceImpl implements PostService {
+    
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Override
+    public Post createPost(Post post) {
+        return postRepository.save(post);
+    }
+
+    @Override
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
+    }
+
+    @Override
+    public void likePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            if (!likeRepository.existsByUserAndPost(user.get(), post.get())) {
+                Like like = new Like();
+                like.setUser(user.get());
+                like.setPost(post.get());
+                likeRepository.save(like);
+            }
+        }
+    }
+
+    @Override
+    public void unlikePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            likeRepository.deleteByUserAndPost(user.get(), post.get());
+        }
+    }
+}
+```
+
+This completes the `PostService` interface and its implementation, allowing for full functionality related to post creation, retrieval, and user interactions like liking and unliking posts.
+
+can you create the related User service and its controller ?
+
+
+
+
+With these changes, your `Post` model now includes information about "likes". You have added a `Like` entity to create the relationship between users and posts, updated the `Post` and `User` entities to reflect this relationship, and modified your services and controllers to handle the liking and unliking of posts.
+
+can you define the PostService interface ?
+
+
+Certainly! The `PostService` interface will define the methods required to manage posts and their related functionalities, such as creating posts, retrieving all posts, liking posts, and unliking posts. Here's a sample definition for the `PostService` interface:
+
+```java
+import java.util.List;
+
+public interface PostService {
+    
+    /**
+     * Creates a new post.
+     * 
+     * @param post The post to be created.
+     * @return The created post.
+     */
+    Post createPost(Post post);
+
+    /**
+     * Retrieves all the posts.
+     * 
+     * @return A list of all posts.
+     */
+    List<Post> getAllPosts();
+
+    /**
+     * Likes a post by a user.
+     * 
+     * @param postId The ID of the post to be liked.
+     * @param userId The ID of the user who likes the post.
+     */
+    void likePost(Long postId, Long userId);
+
+    /**
+     * Unlikes a post by a user.
+     * 
+     * @param postId The ID of the post to be unliked.
+     * @param userId The ID of the user who unlikes the post.
+     */
+    void unlikePost(Long postId, Long userId);
+}
+```
+
+### Explanation
+
+- `createPost(Post post)`: Method to create a new post.
+  - `post`: The post entity to be created.
+  - Returns the created post.
+
+- `getAllPosts()`: Method to retrieve all posts.
+  - Returns a list of all posts.
+
+- `likePost(Long postId, Long userId)`: Method to like a post.
+  - `postId`: The ID of the post to be liked.
+  - `userId`: The ID of the user who likes the post.
+
+- `unlikePost(Long postId, Long userId)`: Method to unlike a post.
+  - `postId`: The ID of the post to be unliked.
+  - `userId`: The ID of the user who unlikes the post.
+
+This interface provides a clear contract for the service implementation (`PostServiceImpl`), ensuring all necessary operations related to `Post` entities are supported. 
+
+### Full Implementation (`PostServiceImpl`)
+
+Here’s a quick recap of the `PostServiceImpl` from the previous interaction for completeness:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class PostServiceImpl implements PostService {
+    
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Override
+    public Post createPost(Post post) {
+        return postRepository.save(post);
+    }
+
+    @Override
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
+    }
+
+    @Override
+    public void likePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            if (!likeRepository.existsByUserAndPost(user.get(), post.get())) {
+                Like like = new Like();
+                like.setUser(user.get());
+                like.setPost(post.get());
+                likeRepository.save(like);
+            }
+        }
+    }
+
+    @Override
+    public void unlikePost(Long postId, Long userId) {
+        Optional<Post> post = postRepository.findById(postId);
+        Optional<User> user = userRepository.findById(userId);
+
+        if (post.isPresent() && user.isPresent()) {
+            likeRepository.deleteByUserAndPost(user.get(), post.get());
+        }
+    }
+}
+```
+
+This completes the `PostService` interface and its implementation, allowing for full functionality related to post creation, retrieval, and user interactions like liking and unliking posts.
+
+
+
+
+
+
+can you model in the code as you mentioned the entities in the case I add the following field?
+
+
+
+Certainly! To implement the feature where users can follow other users, you should model a many-to-many relationship within the `User` entity. In JPA, you can accomplish this by using a join table that holds the relationship between users and their followers.
+
+### Updated `User` Entity
+
+Here is an updated `User` entity, which includes a many-to-many relationship for following and followers. For simplicity, we'll assume that a user can follow many users and also be followed by many users.
+
+```java
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "users")
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+
+    private String password;
+
+    private String email;
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Post> posts = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Like> likes = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_followers",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id")
+    )
+    private Set<User> followers = new HashSet<>();
+
+    @ManyToMany(mappedBy = "followers")
+    private Set<User> following = new HashSet<>();
+
+    // Constructors, Getters, Setters
+}
+```
+
+### Explanation
+
+- **followers**: Represents the users who are following this user.
+- **following**: Represents the users whom this user is following.
+- **Join Table (`user_followers`)**: This join table is used to maintain the relationship between users and their followers.
+
+### Updating `UserServiceImpl`
+
+Now, update the `UserServiceImpl` to handle the following and unfollowing logic with these new relationships:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class UserServiceImpl implements UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public User createUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public void followUser(Long userId, Long followUserId) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<User> followUser = userRepository.findById(followUserId);
+
+        if (user.isPresent() && followUser.isPresent()) {
+            user.get().getFollowing().add(followUser.get());
+            followUser.get().getFollowers().add(user.get());
+            userRepository.save(user.get());
+            userRepository.save(followUser.get());
+        }
+    }
+
+    @Override
+    public void unfollowUser(Long userId, Long followUserId) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<User> followUser = userRepository.findById(followUserId);
+
+        if (user.isPresent() && followUser.isPresent()) {
+            user.get().getFollowing().remove(followUser.get());
+            followUser.get().getFollowers().remove(user.get());
+            userRepository.save(user.get());
+            userRepository.save(followUser.get());
+        }
+    }
+}
+```
+
+### Updating `UserController`
+
+Finally, update your `UserController` to handle the new endpoints for following and unfollowing users:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        if (userService.existsByUsername(user.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+        User savedUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+        Optional<User> user = userService.findByUsername(username);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    @PostMapping("/{userId}/follow/{friendUserId}")
+    public ResponseEntity<Void> followUser(@PathVariable Long userId, @PathVariable Long friendUserId) {
+        userService.followUser(userId, friendUserId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{userId}/unfollow/{friendUserId}")
+    public ResponseEntity<Void> unfollowUser(@PathVariable Long userId, @PathVariable Long friendUserId) {
+        userService.unfollowUser(userId, friendUserId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
+```
+
+### Summary
+
+- **`User` Entity**: Updated to include `followers` and `following` fields for the many-to-many relationships.
+- **`UserServiceImpl`**: Updated methods for following and unfollowing users.
+- **`UserController`**: Added endpoints to follow and unfollow users.
+
+This makes the system capable of handling user-following functionality with proper entity relationships in place.
+
+
+Can you generate th epostman collection for this class?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.social.controllers;
+
+import ai.example.social.entities.Post;
+import ai.example.social.services.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/posts")
+public class PostController {
+    private final PostService postService;
+
+    @Autowired
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        Post savedPost = postService.createPost(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedPost);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        List<Post> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
+}
+"""
+
+
+
+Certainly! You can manually create a Postman collection by using the interface, but here I provide a JSON structure for the Postman collection that represents the endpoints defined in your `PostController` class.
+
+### Postman Collection JSON
+
+```json
+{
+  "info": {
+    "name": "PostController API",
+    "description": "API for managing posts in the social media application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "unique-collection-id"
+  },
+  "item": [
+    {
+      "name": "Create Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Sample Post\",\n  \"body\": \"This is the body of the sample post\",\n  \"author\": {\n    \"id\": 1\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "posts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Posts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/posts",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "posts"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
+```
+
+### Instructions to Import into Postman
+
+1. Open Postman.
+2. Click on the "Import" button in the top-left corner.
+3. Choose the "Raw Text" tab.
+4. Copy the entire JSON structure above and paste it into the Raw Text field.
+5. Click "Continue" and then click "Import".
+
+### Explanation
+
+- **Create Post**:
+  - **Method**: POST
+  - **URL**: `http://localhost:8080/api/posts`
+  - **Headers**: `Content-Type: application/json`
+  - **Body**: A sample JSON body that represents a post (make sure to replace the `id` in `author` with a valid user ID from your database).
+
+- **Get All Posts**:
+  - **Method**: GET
+  - **URL**: `http://localhost:8080/api/posts`
+
+You can further customize the collection by adding tests, more detailed descriptions, and additional endpoints as needed. This basic collection, however, covers the functionality already defined in your `PostController` class.
+
+
+
+Can you generate th epostman collection for this class?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.social.controllers;
+
+import ai.example.social.entities.User;
+import ai.example.social.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        if (userService.existsByUsername(user.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+        User savedUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+        Optional<User> user = userService.findByUsername(username);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+
+    @PostMapping("/{userId}/follow/{friendUserId}")
+    public ResponseEntity<Void> followUser(@PathVariable Long userId, @PathVariable Long friendUserId) {
+        userService.followUser(userId, friendUserId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{userId}/unfollow/{friendUserId}")
+    public ResponseEntity<Void> unfollowUser(@PathVariable Long userId, @PathVariable Long friendUserId) {
+        userService.unfollowUser(userId, friendUserId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+}
+"""
+
+Certainly! Below is the JSON structure for the Postman collection that represents the endpoints defined in your `UserController` class.
+
+### Postman Collection JSON
+
+```json
+{
+  "info": {
+    "name": "UserController API",
+    "description": "API for managing users in the social media application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "unique-collection-id"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"sampleuser\",\n  \"password\": \"password123\",\n  \"email\": \"sampleuser@example.com\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by Username",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users/{username}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "{username}"
+          ],
+          "variable": [
+            {
+              "key": "username",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Follow User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users/{userId}/follow/{friendUserId}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "{userId}",
+            "follow",
+            "{friendUserId}"
+          ],
+          "variable": [
+            {
+              "key": "userId",
+              "value": ""
+            },
+            {
+              "key": "friendUserId",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unfollow User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users/{userId}/unfollow/{friendUserId}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "{userId}",
+            "unfollow",
+            "{friendUserId}"
+          ],
+          "variable": [
+            {
+              "key": "userId",
+              "value": ""
+            },
+            {
+              "key": "friendUserId",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
+```
+
+### Instructions to Import into Postman
+
+1. Open Postman.
+2. Click on the "Import" button in the top-left corner.
+3. Choose the "Raw Text" tab.
+4. Copy the entire JSON structure above and paste it into the Raw Text field.
+5. Click "Continue" and then click "Import".
+
+### Explanation
+
+- **Create User**:
+  - **Method**: POST
+  - **URL**: `http://localhost:8080/api/users`
+  - **Headers**: `Content-Type: application/json`
+  - **Body**: A sample JSON body for creating a new user.
+    ```json
+    {
+      "username": "sampleuser",
+      "password": "password123",
+      "email": "sampleuser@example.com"
+    }
+    ```
+
+- **Get User by Username**:
+  - **Method**: GET
+  - **URL**: `http://localhost:8080/api/users/{username}`
+  - **Path Variables**: `username` must be replaced with the actual username to fetch.
+
+- **Follow User**:
+  - **Method**: POST
+  - **URL**: `http://localhost:8080/api/users/{userId}/follow/{friendUserId}`
+  - **Path Variables**: `userId` must be replaced with the ID of the user who is following, and `friendUserId` must be replaced with the ID of the user to be followed.
+
+- **Unfollow User**:
+  - **Method**: POST
+  - **URL**: `http://localhost:8080/api/users/{userId}/unfollow/{friendUserId}`
+  - **Path Variables**: `userId` must be replaced with the ID of the user who is unfollowing, and `friendUserId` must be replaced with the ID of the user to be unfollowed.
+
+This Postman collection covers the primary functions defined in your `UserController` class. You can customize further by adding more endpoints, tests, pre-request scripts, or detailed descriptions as needed.
+
+can you merge the 2 previous postman collections in only one?
+
+Certainly! Below is the combined Postman collection that includes both the `PostController` and `UserController` endpoints.
+
+### Combined Postman Collection JSON
+
+```json
+{
+  "info": {
+    "name": "Social Media API",
+    "description": "API for managing users and posts in the social media application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "unique-collection-id"
+  },
+  "item": [
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Post\",\n  \"body\": \"This is the body of the sample post\",\n  \"author\": {\n    \"id\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/posts",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "posts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/posts",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "posts"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"sampleuser\",\n  \"password\": \"password123\",\n  \"email\": \"sampleuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by Username",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/{username}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "{username}"
+              ],
+              "variable": [
+                {
+                  "key": "username",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/{userId}/follow/{friendUserId}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "{userId}",
+                "follow",
+                "{friendUserId}"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": ""
+                },
+                {
+                  "key": "friendUserId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unfollow User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/{userId}/unfollow/{friendUserId}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "{userId}",
+                "unfollow",
+                "{friendUserId}"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": ""
+                },
+                {
+                  "key": "friendUserId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Instructions to Import into Postman
+
+1. Open Postman.
+2. Click on the "Import" button in the top-left corner.
+3. Choose the "Raw Text" tab.
+4. Copy the entire JSON structure above and paste it into the Raw Text field.
+5. Click "Continue" and then click "Import".
+
+### Explanation
+
+This Postman collection has two main folders: **Posts** and **Users**, encompassing all the respective endpoints.
+
+- **Posts**:
+  - **Create Post**:
+    - **Method**: POST
+    - **URL**: `http://localhost:8080/api/posts`
+    - **Headers**: `Content-Type: application/json`
+    - **Body**: Sample JSON body for creating a post.
+      ```json
+      {
+        "title": "Sample Post",
+        "body": "This is the body of the sample post",
+        "author": {
+          "id": 1
+        }
+      }
+      ```
+  - **Get All Posts**:
+    - **Method**: GET
+    - **URL**: `http://localhost:8080/api/posts`
+
+- **Users**:
+  - **Create User**:
+    - **Method**: POST
+    - **URL**: `http://localhost:8080/api/users`
+    - **Headers**: `Content-Type: application/json`
+    - **Body**: Sample JSON body for creating a user.
+      ```json
+      {
+        "username": "sampleuser",
+        "password": "password123",
+        "email": "sampleuser@example.com"
+      }
+      ```
+  - **Get User by Username**:
+    - **Method**: GET
+    - **URL**: `http://localhost:8080/api/users/{username}`
+    - **Path Variables**: `username` must be replaced with the actual username to fetch.
+
+  - **Follow User**:
+    - **Method**: POST
+    - **URL**: `http://localhost:8080/api/users/{userId}/follow/{friendUserId}`
+    - **Path Variables**: `userId` must be replaced with the ID of the user who is following, and `friendUserId` must be replaced with the ID of the user to be followed.
+
+  - **Unfollow User**:
+    - **Method**: POST
+    - **URL**: `http://localhost:8080/api/users/{userId}/unfollow/{friendUserId}`
+    - **Path Variables**: `userId` must be replaced with the ID of the user who is unfollowing, and `friendUserId` must be replaced with the ID of the user to be unfollowed.
+
+This combined collection provides a comprehensive set of endpoints for managing both posts and users in your social media application. You will need to customize the IDs and relevant data as per your database records while testing.
+
+In the following code, in the line: "followUser.get().getFollowers().add(user.get());" I get the followint error "Method threw 'java.lang.StackOverflowError' exception. Cannot evaluate ai.example.social.entities.User.toString()"
+"""
+   @Override
+    public void followUser(Long userId, Long followUserId) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<User> followUser = userRepository.findById(followUserId);
+
+        if (user.isPresent() && followUser.isPresent()) {
+            user.get().getFollowing().add(followUser.get());
+            followUser.get().getFollowers().add(user.get());
+            userRepository.save(user.get());
+            userRepository.save(followUser.get());
+        }
+    }
+"""
+
 

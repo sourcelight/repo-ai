@@ -90,7 +90,7 @@
                                 <!--<exclude>**/entities/**</exclude>
                                 <exclude>**/*DataInitializer.class</exclude>-->
 
-                                <exclude>**/*StoreProductsApplication.class</exclude>
+                                <exclude>**/*DemoAISocialApplication.class</exclude>
                             </excludes>
                         </configuration>
                     </execution>

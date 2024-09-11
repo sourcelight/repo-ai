@@ -4,9 +4,10 @@
  */
 
 
-package ai.example.social.controller;
+package ai.example.social.controllers;
 
 import ai.example.social.entities.Post;
+import ai.example.social.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +35,18 @@ public class PostController {
     public ResponseEntity<List<Post>> getAllPosts() {
         List<Post> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
+    }
+
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.likePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{postId}/unlike")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.unlikePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
