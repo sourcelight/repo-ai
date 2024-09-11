@@ -1558,3 +1558,318 @@ In the following code, in the line: "followUser.get().getFollowers().add(user.ge
 """
 
 
+Can you generate the test class at Controller level of the following class ?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.social.controllers;
+
+import ai.example.social.entities.Post;
+import ai.example.social.services.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/posts")
+public class PostController {
+    private final PostService postService;
+
+    @Autowired
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        Post savedPost = postService.createPost(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedPost);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        List<Post> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
+
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.likePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{postId}/unlike")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long postId, @RequestBody Long userId) {
+        postService.unlikePost(postId, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
+"""
+
+
+can you write a test class for the following service class?
+"""
+/**
+ * @author: Riccardo_Bruno
+ * @project: repo-ai
+ */
+
+
+package ai.example.social.services;
+
+import ai.example.social.entities.User;
+import ai.example.social.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public User createUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public void followUser(Long userId, Long followUserId) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<User> followUser = userRepository.findById(followUserId);
+
+        if (user.isPresent() && followUser.isPresent()) {
+            user.get().getFollowing().add(followUser.get());
+            followUser.get().getFollowers().add(user.get());
+            userRepository.save(user.get());
+            userRepository.save(followUser.get());
+        }
+    }
+
+    @Override
+    public void unfollowUser(Long userId, Long followUserId) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<User> followUser = userRepository.findById(followUserId);
+
+        if (user.isPresent() && followUser.isPresent()) {
+            user.get().getFollowing().remove(followUser.get());
+            followUser.get().getFollowers().remove(user.get());
+            userRepository.save(user.get());
+            userRepository.save(followUser.get());
+        }
+    }
+
+
+
+}
+
+
+"""
+Certainly! To create a test class for the `UserServiceImpl` service layer, we will use JUnit 5 along with Mockito to mock the dependencies. This test class will focus on unit testing the service methods, ensuring that they interact with the `UserRepository` as expected.
+
+### Dependencies
+
+Ensure you have the necessary dependencies in your `pom.xml` or `build.gradle` for JUnit 5 and Mockito.
+
+```xml
+<!-- For Maven -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-junit-jupiter</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+### Test Class
+
+Here's the test class for `UserServiceImpl`.
+
+```java
+package ai.example.social.services;
+
+import ai.example.social.entities.User;
+import ai.example.social.repositories.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+public class UserServiceImplTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private UserServiceImpl userService;
+
+    private User user;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        user = new User();
+        user.setId(1L);
+        user.setUsername("sampleuser");
+        user.setPassword("password123");
+        user.setEmail("sampleuser@example.com");
+    }
+
+    @Test
+    public void testCreateUser() {
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        User createdUser = userService.createUser(user);
+
+        assertEquals(user.getId(), createdUser.getId());
+        assertEquals(user.getUsername(), createdUser.getUsername());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    public void testFindByUsername() {
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+        Optional<User> foundUser = userService.findByUsername("sampleuser");
+
+        assertTrue(foundUser.isPresent());
+        assertEquals(user.getId(), foundUser.get().getId());
+        verify(userRepository, times(1)).findByUsername("sampleuser");
+    }
+
+    @Test
+    public void testExistsByUsername() {
+        when(userRepository.existsByUsername(anyString())).thenReturn(true);
+
+        boolean exists = userService.existsByUsername("sampleuser");
+
+        assertTrue(exists);
+        verify(userRepository, times(1)).existsByUsername("sampleuser");
+    }
+
+    @Test
+    public void testFollowUser() {
+        User followUser = new User();
+        followUser.setId(2L);
+
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user)).thenReturn(Optional.of(followUser));
+
+        userService.followUser(1L, 2L);
+
+        verify(userRepository, times(2)).findById(anyLong());
+        verify(userRepository, times(1)).save(user);
+        verify(userRepository, times(1)).save(followUser);
+        assertTrue(user.getFollowing().contains(followUser));
+        assertTrue(followUser.getFollowers().contains(user));
+    }
+
+    @Test
+    public void testUnfollowUser() {
+        User followUser = new User();
+        followUser.setId(2L);
+        user.getFollowing().add(followUser);
+        followUser.getFollowers().add(user);
+
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user)).thenReturn(Optional.of(followUser));
+
+        userService.unfollowUser(1L, 2L);
+
+        verify(userRepository, times(2)).findById(anyLong());
+        verify(userRepository, times(1)).save(user);
+        verify(userRepository, times(1)).save(followUser);
+        assertFalse(user.getFollowing().contains(followUser));
+        assertFalse(followUser.getFollowers().contains(user));
+    }
+}
+```
+
+### Explanation
+
+1. **Annotations**:
+   - `@Mock`: Used to create mock instances of the `UserRepository`.
+   - `@InjectMocks`: Used to create an instance of `UserServiceImpl` and inject the mocked dependencies.
+   - `@BeforeEach`: A JUnit 5 annotation used to specify a method that should be run before each test. In this case, it initializes the mocks and the test data.
+
+2. **Setup Method**:
+   - `MockitoAnnotations.openMocks(this)`: Initializes the mocks.
+   - Initializes a sample `User` object.
+
+3. **Test Methods**:
+   - **testCreateUser**:
+     - Mocks the `userRepository.save` method.
+     - Calls the `userService.createUser` method.
+     - Verifies the correct behavior and assertions.
+   - **testFindByUsername**:
+     - Mocks the `userRepository.findByUsername` method.
+     - Calls the `userService.findByUsername` method.
+     - Verifies the correct behavior and assertions.
+   - **testExistsByUsername**:
+     - Mocks the `userRepository.existsByUsername` method.
+     - Calls the `userService.existsByUsername` method.
+     - Verifies the correct behavior and assertions.
+   - **testFollowUser**:
+     - Creates a second `User` object.
+     - Mocks the `userRepository.findById` method to return the `User` objects.
+     - Calls the `userService.followUser` method.
+     - Verifies that the follow relationships are properly established and saved.
+   - **testUnfollowUser**:
+     - Creates a second `User` object and establishes a follow relationship.
+     - Mocks the `userRepository.findById` method to return the `User` objects.
+     - Calls the `userService.unfollowUser` method.
+     - Verifies that the follow relationships are properly removed and saved.
+
+### Running the Tests
+
+Run the tests using your IDE or build tool (Maven/Gradle).
+
+**Maven**:
+```sh
+mvn test
+```
+
+**Gradle**:
+```sh
+gradlew test
+```
+
+By following these steps, you'll create a comprehensive test class for the `UserServiceImpl` service layer, ensuring that it correctly interacts with the `UserRepository` and performs the expected actions.
